@@ -2,7 +2,7 @@
 
 > ⚠️ **Use at your own risk. For educational purposes only.**
 
-A powerful and lightweight Windows optimization tool for advanced users, gamers, and anyone suffering from lag or memory hogs. This script disables unnecessary services, cleans memory and temp files, and integrates with RAMMap64 to clear standby RAM.
+A powerful and lightweight Windows optimization tool for advanced users, gamers, and anyone suffering from lag or memory hogs. This script disables unnecessary services, cleans memory and temp files, and clears standby RAM with a built-in PowerShell cleaner (`Clean-Memory.ps1`) — no RAMMap or other third-party binary needed.
 
 Ideal for **low-end systems**, **older laptops**, or **performance-hungry gaming rigs** like ASUS ROG.
 
@@ -28,11 +28,11 @@ Ideal for **low-end systems**, **older laptops**, or **performance-hungry gaming
 
 - ❌ Disables Windows Updates _(optional & reversible)_
 - 🛃 Cleans system temp folders
-- 📊 Monitors and trims RAM usage in real-time
+- 📊 Monitors RAM and cleans it only when available memory is low (below 15%, at most every 30 minutes)
 - ❌ Kills background apps and bloatware
 - ♻️ Loops automatically every 10 seconds
-- 🚿 Uses [RAMMap64](https://learn.microsoft.com/en-us/sysinternals/downloads/rammap) to clear standby memory
-- 🧠 Designed to work with **RAMMap64.exe** and a silent launcher
+- 🚿 Clears standby/modified memory with `Clean-Memory.ps1`, using built-in Windows APIs (see [CLEAN-MEMORY.md](CLEAN-MEMORY.md))
+- 🧠 `Clean-Memory.ps1` also works on its own: `-Report`, `-WhatIf`, or `-Install` as a hidden scheduled task
 
 ---
 
@@ -40,10 +40,10 @@ Ideal for **low-end systems**, **older laptops**, or **performance-hungry gaming
 
 ```
 .
-├── RAMMap/                  # (Optional) Additional RAMMap files
 ├── clear_ram_loop.bat       # Main optimization script with looping
+├── Clean-Memory.ps1         # Native RAM cleaner (replaces RAMMap)
+├── CLEAN-MEMORY.md          # Clean-Memory.ps1 usage and options
 ├── run_invisible.vbs        # VBScript launcher for silent background execution
-├── RAMMap64.exe             # Download from Microsoft Sysinternals
 ├── setup.ps1                # NEW: PowerShell launcher to unblock & run everything
 ├── README.md
 ├── LICENSE
@@ -57,7 +57,7 @@ Ideal for **low-end systems**, **older laptops**, or **performance-hungry gaming
 
 > 💡 Want full control like a true Windows ninja? Follow these steps manually:
 
-1. 💾 **Download [RAMMap64](https://learn.microsoft.com/en-us/sysinternals/downloads/rammap)** (if it's not already included).
+1. 📊 **Optional:** check memory first with `.\Clean-Memory.ps1 -Report` (no admin needed).
 2. 🔐 **Right-click** `clear_ram_loop.bat` **or** `run_invisible.vbs` and select **Run as Administrator**.
 3. 🛡️ **Optional:** If Windows Defender blocks the files, temporarily **pause real-time protection**:
    - Defender often flags `.bat` or `.vbs` scripts by default — even safe ones like this.
@@ -132,7 +132,7 @@ Or use the included `revert.bat` file (Run as Administrator).
 ## 🌚 Tags
 
 ```
-batch-script, windows-optimizer, ram-cleaner, rammap, gaming-boost, disable-windows-update, temp-cleaner, bloatware-remover, windows10, windows11, rog-optimizer, sysinternals
+batch-script, windows-optimizer, ram-cleaner, standby-list, gaming-boost, disable-windows-update, temp-cleaner, bloatware-remover, windows10, windows11, rog-optimizer
 ```
 
 ---
