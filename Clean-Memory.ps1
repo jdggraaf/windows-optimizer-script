@@ -286,6 +286,11 @@ function Stop-WithError([string]$Message) {
 
 function Format-Status([int]$s) { '0x{0:X8}' -f $s }
 
+# Culture-independent formatting, so the log reads the same in PowerShell 5.1 and 7 on any locale.
+function Format-Inv([string]$Format, [object[]]$Values) {
+    [string]::Format([Globalization.CultureInfo]::InvariantCulture, $Format, $Values)
+}
+
 function Test-ReparsePoint([string]$Path) {
     if (-not (Test-Path -LiteralPath $Path)) { return $false }
     [bool]((Get-Item -LiteralPath $Path -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)
@@ -373,7 +378,7 @@ function Get-MemSnapshot {
 function Show-Snapshot([string]$Title, $Snap) {
     Write-Host ''
     Write-Host $Title -ForegroundColor Cyan
-    $fmt = { param($v) if ($null -eq $v) { 'n/a' } else { '{0:N0} MB' -f $v } }
+    $fmt = { param($v) if ($null -eq $v) { 'n/a' } else { Format-Inv '{0:N0} MB' $v } }
     '  Total       : ' + (& $fmt $Snap.TotalMB)
     '  Available   : ' + (& $fmt $Snap.AvailableMB) + '  (free + zero + standby)'
     '  Free + Zero : ' + (& $fmt $Snap.FreeZeroMB)
@@ -388,7 +393,7 @@ function Format-SnapshotLine($s) {
 function Get-Delta($a, $b) {
     if ($null -eq $a -or $null -eq $b) { return 'n/a' }
     $d = $b - $a
-    '{0}{1:N0} MB' -f $(if ($d -ge 0) { '+' } else { '-' }), [math]::Abs($d)
+    Format-Inv '{0}{1:N0} MB' @($(if ($d -ge 0) { '+' } else { '-' }), [math]::Abs($d))
 }
 
 function Resolve-Areas([string[]]$Raw) {
@@ -541,15 +546,17 @@ try {
         $availPct = 100.0 * $before.AvailableMB / $before.TotalMB
         $low = ($availPct -lt $ThresholdPercent) -or ($ThresholdMB -gt 0 -and $before.AvailableMB -lt $ThresholdMB)
         if (-not $low) {
-            Write-Log ('Auto: skipped, memory ok ({0:N1}% available, threshold {1}%). {2}' -f $availPct, $ThresholdPercent, (Format-SnapshotLine $before))
-            Write-Verbose ('Skipped: {0:N1}% available is not below threshold.' -f $availPct)
+            $msg = Format-Inv 'Auto: skipped, memory ok ({0:N1}% available, threshold {1}%).' $availPct, $ThresholdPercent
+            Write-Log ($msg + ' ' + (Format-SnapshotLine $before))
+            Write-Host $msg
             return
         }
         $last = Get-LastCleanTime
         $age = ((Get-Date).ToUniversalTime() - $last.ToUniversalTime()).TotalMinutes
         if ($age -lt $CooldownMinutes) {
-            Write-Log ('Auto: skipped, cooldown ({0:N1} of {1} min elapsed).' -f $age, $CooldownMinutes)
-            Write-Verbose 'Skipped: cooldown active.'
+            $msg = Format-Inv 'Auto: skipped, cooldown ({0:N1} of {1} min elapsed since the last clean).' $age, $CooldownMinutes
+            Write-Log $msg
+            Write-Host $msg
             return
         }
     }
@@ -596,7 +603,8 @@ try {
         $results | Format-Table Area, Success, Status, Detail -AutoSize | Out-String | Write-Host
 
         Write-Host 'Change' -ForegroundColor Cyan
-        '  Available   : ' + (Get-Delta $before.AvailableMB $after.AvailableMB) + '  (barely moves after a standby purge: standby counts as available)'
+        $standbyRan = @($results | Where-Object { $_.Area -in 'Standby', 'LowPriorityStandby' }).Count -gt 0
+        '  Available   : ' + (Get-Delta $before.AvailableMB $after.AvailableMB) + $(if ($standbyRan) { '  (barely moves after a standby purge: standby counts as available)' } else { '' })
         '  Free + Zero : ' + (Get-Delta $before.FreeZeroMB $after.FreeZeroMB)
         '  Standby     : ' + (Get-Delta $before.StandbyMB $after.StandbyMB)
         '  Modified    : ' + (Get-Delta $before.ModifiedMB $after.ModifiedMB)
