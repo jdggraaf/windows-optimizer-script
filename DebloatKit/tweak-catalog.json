@@ -2649,7 +2649,7 @@
     "verification": "from-notes",
     "effectiveness": 0,
     "evidenceQuality": "mixed",
-    "measuredEffect": "Single-machine test: about 4 s boot with Fast Startup on vs about 9-10 s off (NVMe). Unverified estimate: 10-30 s slower depending on drive. Areas rated 0 and 1.",
+    "measuredEffect": "Single-machine test: about 4 s boot with Fast Startup on vs about 9-10 s off (NVMe). Unverified estimate: 10-30 s slower depending on drive. Areas rated 0 and 1.; MakeUseOf (single author, SSD): shutdown-to-desktop about 11 s to 13 s",
     "explanation": "Makes Shut down a real full shutdown instead of a hybrid hibernate. This clears stale state and avoids odd issues with updates, drivers or dual boot. It is a stability / clean-boot tweak and makes boot SLOWER, not faster.",
     "whoBenefits": "People with dual boot, shutdown or update glitches",
     "tradeoff": "Slower boot from Shut down (about 4 s with Fast Startup on vs 9-10 s off in one NVMe test, more on slower disks). Restart is unaffected.",
@@ -2658,7 +2658,8 @@
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md",
       "https://www.dedoimedo.com/computers/windows-11-fast-startup-disable.html",
       "https://www.techrepublic.com/article/take-control-fast-startup-windows/",
-      "https://learn.microsoft.com/windows/win32/power/system-power-states#hibernate-state-s4"
+      "https://learn.microsoft.com/windows/win32/power/system-power-states#hibernate-state-s4",
+      "https://www.makeuseof.com/turned-off-windows-fast-startup-boot-time-barely-changed-bugs-disappeared/"
     ]
   },
   {
@@ -2744,14 +2745,16 @@
     "preset": "balanced",
     "verification": "from-notes",
     "effectiveness": 0,
-    "evidenceQuality": "none",
-    "measuredEffect": "not measured",
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured as a gain; Microsoft Q&A report of about 1 GB held by compression on 16 GB, and disabling it increases pagefile use",
     "explanation": "Disables RAM compression. It trades a little CPU for memory pressure, with no benchmark showing a gaming gain. It can hurt on 8 GB machines.",
     "whoBenefits": "Systems with 32 GB or more where it is harmless but unneeded",
-    "tradeoff": "More paging on low-RAM systems.",
+    "tradeoff": "More paging on low-RAM systems. Disabling compression worsens commit and paging pressure, because pages that were compressed in RAM go to the pagefile instead.",
     "evidence": [
       "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml",
-      "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html"
+      "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html",
+      "https://learn.microsoft.com/en-us/answers/questions/5513382/mem-compression-turns-to-a-power-hog",
+      "https://learn.microsoft.com/en-us/answers/questions/4338197/windows-11-standby-list-and-memory-compression"
     ]
   },
   {
@@ -3349,7 +3352,7 @@
       "action": "restoreSnapshot",
       "ifAbsentBefore": "deleteValue"
     },
-    "risk": "safe",
+    "risk": "moderate",
     "breaks": "Temp/Recycle Bin not auto-purged",
     "ram_or_perf_effect": null,
     "post_install_possible": true,
@@ -3358,14 +3361,15 @@
       "perf-evidence"
     ],
     "evidence": [
-      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md",
+      "https://learn.microsoft.com/en-us/windows/configuration/storage/storage-sense"
     ],
-    "preset": "safe",
+    "preset": "balanced",
     "verification": "from-notes",
     "effectiveness": 0,
     "evidenceQuality": "none",
     "measuredEffect": "not measured",
-    "explanation": "Turns off Storage Sense, which automatically deletes temp files and old Recycle Bin items.",
+    "explanation": "Turns off Storage Sense, which automatically deletes temp files and old Recycle Bin items. By default Storage Sense only runs when disk space is low, so turning it off has no performance benefit and removes the low-disk cleanup.",
     "whoBenefits": "Users who want to fine-tune Windows behaviour",
     "tradeoff": "Temp files and the Recycle Bin are no longer cleaned automatically, so disk space is freed less often."
   },
@@ -3999,7 +4003,7 @@
     "measuredEffect": "not measured; Microsoft says TurnOffWindowsCopilot does not control the newer Copilot app (24H2 and later)",
     "explanation": "Sets the old Windows Copilot policy and hides the Copilot taskbar button. Microsoft marks TurnOffWindowsCopilot as deprecated and says it does not cover the newer Copilot app, so on 24H2 and later only the taskbar button change is reliably visible. App removal is a separate, irreversible tweak (ai-copilot-app-remove).",
     "whoBenefits": "Anyone who does not use Copilot and wants a cleaner taskbar",
-    "tradeoff": "The policy may do nothing on current builds; the taskbar button is hidden but the Copilot app stays installed.",
+    "tradeoff": "The policy may do nothing on current builds; the taskbar button is hidden but the Copilot app stays installed. Microsoft: the TurnOffWindowsCopilot policy is subject to near-term deprecation; AppLocker is the documented replacement.",
     "evidence": [
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/Regfiles/Disable_Copilot.reg",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
@@ -4007,7 +4011,8 @@
       "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html",
       "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-windowsai",
       "https://learn.microsoft.com/en-us/windows/client-management/manage-windows-copilot",
-      "https://learn.microsoft.com/answers/a/12223056"
+      "https://learn.microsoft.com/answers/a/12223056",
+      "https://learn.microsoft.com/windows/client-management/manage-windows-copilot"
     ]
   },
   {
@@ -4054,9 +4059,9 @@
     ],
     "preset": "balanced",
     "verification": "from-notes",
-    "effectiveness": 1,
+    "effectiveness": 2,
     "evidenceQuality": "weak",
-    "measuredEffect": "not measured; the app is idle unless opened",
+    "measuredEffect": "press measurement (Windows Latest, 2026-04): new Copilot app about 500 MB in background, about 1 GB active; previous native app under 100 MB",
     "explanation": "Removes the Copilot app packages for all users and from the provisioning list. The engine skips AppX steps unless -AllowIrreversible is passed.",
     "whoBenefits": "Anyone who never uses Copilot",
     "tradeoff": "No exact undo: reinstall from the Microsoft Store. Updates or the Store can bring the app back.",
@@ -4067,7 +4072,8 @@
       "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html",
       "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-windowsai",
       "https://learn.microsoft.com/en-us/windows/client-management/manage-windows-copilot",
-      "https://learn.microsoft.com/answers/a/12223056"
+      "https://learn.microsoft.com/answers/a/12223056",
+      "https://windowslatest.com/2026/04/05/new-copilot-for-windows-11-includes-a-full-microsoft-edge-package-uses-more-ram"
     ]
   },
   {
@@ -6399,7 +6405,7 @@
       "startType": "Disabled"
     },
     "revert": "snapshot",
-    "risk": "safe",
+    "risk": "moderate",
     "breaks": null,
     "ram_or_perf_effect": null,
     "post_install_possible": true,
@@ -6408,14 +6414,16 @@
       "https://www.elevenforum.com/t/does-disabling-sysmain-superfetch-make-any-sense-with-an-nvme-system-drive.6625",
       "https://www.askwoody.com/forums/topic/disable-superfetch-if-using-an-ssd-as-system-disk",
       "https://www.xda-developers.com/i-disabled-these-5-windows-11-background-services-and-saw-zero-downsides/",
-      "https://geekswipe.net/?p=157"
+      "https://geekswipe.net/?p=157",
+      "https://www.engadget.com/2273348/why-windows-11-using-so-much-ram/",
+      "https://techcommunity.microsoft.com/discussions/windowsinsiderprogram/system-windows-ram-problem-fix/4506405"
     ],
-    "preset": "safe",
+    "preset": "balanced",
     "verification": "new-unverified",
     "effectiveness": 1,
     "evidenceQuality": "weak",
-    "measuredEffect": "not measured; no difference reported on NVMe",
-    "explanation": "SysMain pre-loads frequently used apps into memory. It was designed for slow hard drives and does little on SSD or NVMe drives. Users report no difference either way. Expect no measurable gain on an SSD.",
+    "measuredEffect": "not measured on SSD/NVMe; the only pro-disable report (Tech Community) counts standby cache as used RAM. Engadget and HelpDeskGeek: only worth trying on HDD or under 4 GB RAM.",
+    "explanation": "SysMain pre-loads frequently used apps into memory. It was designed for slow hard drives and does little on SSD or NVMe drives. The only report of a gain counts standby memory as used, but standby memory is free memory: Windows hands it to apps on demand, so a high figure there is not a problem. Engadget and HelpDeskGeek advise leaving SysMain on except on an HDD or under 4 GB of RAM.",
     "whoBenefits": "SSD/NVMe users who want fewer background disk reads; not HDD users",
     "tradeoff": "On a hard drive, app launches and boot can get slower."
   },
@@ -6444,7 +6452,7 @@
     "verification": "new-unverified",
     "effectiveness": 2,
     "evidenceQuality": "mixed",
-    "measuredEffect": "one reviewer: nearly 1 GB on a 16 GB laptop (single machine, unrepeated); Microsoft: normal is a few hundred MB",
+    "measuredEffect": "one reviewer: nearly 1 GB on a 16 GB laptop (single machine, unrepeated); Microsoft: normal is a few hundred MB. Microsoft KB 4558579: typical index under 30,000 items, issues above 400,000; GB-level indexer memory points to a corrupted index (rebuild).",
     "explanation": "The Windows Search indexer can use a lot of memory when its index is large or corrupted; one reviewer reported over 1 GB freed, though Microsoft says a few hundred MB is normal. Microsoft favours rebuilding the index over disabling. Manual start is gentler than Disabled.",
     "whoBenefits": "People with a huge or broken index who use a separate search tool; first try rebuilding the index",
     "tradeoff": "Slower Start/Explorer search, Outlook search may degrade, and server-side search for SMB shares depends on it."
@@ -6980,6 +6988,203 @@
     "explanation": "Disables the automatic migration to the new Outlook for Windows in classic Outlook. It does not stop the new Outlook app being preinstalled: Microsoft says that cannot be blocked on builds after 23H2.",
     "whoBenefits": "Classic Outlook users.",
     "tradeoff": "Only helps with classic Outlook; the new app remains installed.",
+    "policyDocumented": true
+  },
+  {
+    "id": "chrome-memory-saver-on",
+    "category": "chrome-browser",
+    "description": "Lock Chrome Memory Saver on by policy (HighEfficiencyModeEnabled).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Google\\Chrome",
+          "name": "HighEfficiencyModeEnabled",
+          "valueType": "DWord",
+          "value": 1
+        }
+      ]
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://chromeenterprise.google/policies/high-efficiency-mode-enabled/",
+      "https://chromium.googlesource.com/chromium/src/+/HEAD/components/policy/resources/templates/policy_definitions/Miscellaneous/HighEfficiencyModeEnabled.yaml",
+      "https://support.google.com/chrome/answer/12929150",
+      "https://www.benchmark.pl/google-chrome-memory-saver-sprawdzam-jak-dziala-7268406578017345a"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 2,
+    "evidenceQuality": "weak",
+    "measuredEffect": "One independent test (Benchmark.pl, n=1): Chrome 1414 MB at start, about 7.5% lower after 40 min, about 83% lower after a long idle. Google claims up to 40% (vendor). Memory Saver is on by default in recent Chrome; the policy locks it on.",
+    "explanation": "Memory Saver discards background tabs after a period of inactivity, which frees their memory. Tabs that play audio or video, share the screen, have partly filled forms, run downloads or are pinned are kept.",
+    "whoBenefits": "People with many Chrome tabs open, such as 100+ processes on a 16-32 GB PC",
+    "tradeoff": "Discarded tabs reload when you switch back to them. Users cannot turn Memory Saver off while the policy is set; the savings level stays user-controlled.",
+    "policyDocumented": true
+  },
+  {
+    "id": "chrome-memory-saver-maximum",
+    "category": "chrome-browser",
+    "description": "Set Chrome Memory Saver to the Maximum savings level (MemorySaverModeSavings = 2).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Google\\Chrome",
+          "name": "HighEfficiencyModeEnabled",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Google\\Chrome",
+          "name": "MemorySaverModeSavings",
+          "valueType": "DWord",
+          "value": 2
+        }
+      ]
+    },
+    "revert": "snapshot",
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://chromeenterprise.google/policies/memory-saver-mode-savings/",
+      "https://chromium.googlesource.com/chromium/src/+/HEAD/components/policy/resources/templates/policy_definitions/Miscellaneous/MemorySaverModeSavings.yaml"
+    ],
+    "preset": "balanced",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured for the Maximum level; see chrome-memory-saver-on for the default level",
+    "explanation": "Turns Memory Saver on and sets the Maximum savings level, so background tabs go inactive sooner than at the Moderate default. Needs Chrome 126 or later. Pick this or chrome-memory-saver-on, not both.",
+    "whoBenefits": "People who still run short of memory with the default Memory Saver level",
+    "tradeoff": "Tabs go inactive sooner and reload more often, which costs network and time.",
+    "policyDocumented": true
+  },
+  {
+    "id": "chrome-background-mode-off",
+    "category": "chrome-browser",
+    "description": "Stop Chrome from running in the background after the last window is closed (BackgroundModeEnabled = 0).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Google\\Chrome",
+          "name": "BackgroundModeEnabled",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://chromeenterprise.google/policies/background-mode-enabled/",
+      "https://chromium.googlesource.com/chromium/src/+/HEAD/components/policy/resources/templates/policy_definitions/Miscellaneous/BackgroundModeEnabled.yaml"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured; prevents Chrome processes staying resident after the last window closes",
+    "explanation": "By default Chrome can keep a background process alive after you close the last window so apps and extensions keep running. The policy turns that off, so closing Chrome ends its processes and frees their memory.",
+    "whoBenefits": "Chrome users who close the browser and expect its memory to be released",
+    "tradeoff": "Chrome apps and extensions that rely on running in the background (some notification and sync features) stop when Chrome is closed.",
+    "policyDocumented": true
+  },
+  {
+    "id": "edge-sleeping-tabs-5min",
+    "category": "edge-browser",
+    "description": "Recommend Edge sleeping tabs on with a 5-minute timeout (user-overridable defaults).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge\\Recommended",
+          "name": "SleepingTabsEnabled",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge\\Recommended",
+          "name": "SleepingTabsTimeout",
+          "valueType": "DWord",
+          "value": 300
+        }
+      ]
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/deployedge/microsoft-edge-policies/sleepingtabsenabled",
+      "https://learn.microsoft.com/deployedge/microsoft-edge-policies/sleepingtabstimeout",
+      "https://learn.microsoft.com/troubleshoot/microsoft-edge/performance/edge-high-cpu-memory",
+      "https://www.ghacks.net/?p=179016"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 2,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "Microsoft telemetry: about 39.1 MB saved per slept tab on average (6 billion tabs over 28 days); Edge 100 claim of 85% memory per slept tab. Default timeout is 900 s; this sets 300 s.",
+    "explanation": "Sleeping tabs are on by default. This sets a recommended (user-overridable) default and shortens the timeout from 15 to 5 minutes. Edge heuristics skip tabs that play audio, stream or show notifications.",
+    "whoBenefits": "People with many Edge tabs open in the background",
+    "tradeoff": "Idle tabs wake with a short delay. Does not apply to Edge profiles signed in with a personal Microsoft account (Learn: Applies to a profile that is signed in with a Microsoft account: No). On managed devices Intune may already set these.",
+    "policyDocumented": true
+  },
+  {
+    "id": "edge-total-memory-limit-4gb",
+    "category": "edge-browser",
+    "description": "Cap Edge memory at 4 GB (TotalMemoryLimitMb = 4096, mandatory policy).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "TotalMemoryLimitMb",
+          "valueType": "DWord",
+          "value": 4096
+        }
+      ]
+    },
+    "revert": "snapshot",
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/deployedge/microsoft-edge-policies/totalmemorylimitmb"
+    ],
+    "preset": "balanced",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured; Microsoft: no guarantee the browser stays under the limit; without the policy Edge only saves memory when physical memory is low",
+    "explanation": "Sets a memory limit for the Edge browser. Once Edge passes the limit it discards tabs to get back under it. Only the mandatory path is supported; the Recommended path does not work for this policy.",
+    "whoBenefits": "PCs where Edge grows past several GB and crowds out other programs",
+    "tradeoff": "Tabs are discarded and fully reloaded once Edge passes 4 GB; heavy web apps may lose state.",
     "policyDocumented": true
   }
 ]

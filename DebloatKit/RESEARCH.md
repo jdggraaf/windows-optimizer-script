@@ -1,3 +1,5 @@
+> For the 2026-10 performance and RAM review, see [../docs/PERFORMANCE-RESEARCH.md](../docs/PERFORMANCE-RESEARCH.md).
+
 # Windows 11 debloat research: reproducing ReviOS / AtlasOS / Tiny11 results post-install
 
 Inputs: 7 per-project catalogs (178 source pages summarised by a small model). Output: `tweak-catalog.json` (122 deduplicated, machine-usable tweaks). Registry paths marked `verification` other than `from-notes` must be checked on a 26100/26200 VM before shipping.
