@@ -58,4 +58,17 @@
     "risk": "moderate",
     "preset": "balanced"
   }
+,
+  {
+    "id": "test-unverified",
+    "category": "other",
+    "description": "New-unverified tweak (must be skipped unless -IncludeUnverified is passed).",
+    "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest", "name": "Unverified", "valueType": "DWord", "value": 1 },
+    "revert": "snapshot",
+    "risk": "safe",
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 4,
+    "evidenceQuality": "weak"
+  }
 ]

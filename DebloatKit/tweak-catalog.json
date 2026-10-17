@@ -42,7 +42,13 @@
       "https://github.com/orgs/Atlas-OS/discussions/1699"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured; catalog note: None",
+    "explanation": "Creates a Windows restore point before the first change (lifting the 24-hour limit for this one call) so you can roll back with System Restore. The engine does this itself.",
+    "whoBenefits": "Users with a specific need",
+    "tradeoff": "Needs System Protection turned on for C:. Takes a few seconds and some disk space; if it fails the run is aborted."
   },
   {
     "id": "misc-registry-backup-task",
@@ -73,7 +79,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/feature.json"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Turns the periodic registry backup (RegIdleBackup task) back on so a copy of the registry hives is saved on a schedule.",
+    "whoBenefits": "Users who want to control background tasks",
+    "tradeoff": "Uses a little disk space and a short background task. Nothing is lost."
   },
   {
     "id": "telemetry-allowtelemetry-policy",
@@ -105,13 +117,23 @@
       "privacy",
       "perf-evidence"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 2,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "Microsoft-disclosed (secondhand, Win10 1703): Basic about 109-159 KB/day, Enhanced about 239-348 KB/day. Not a packet capture.",
+    "explanation": "Sets the diagnostic data level to the minimum. On Windows 11 Pro and Home, 0 is treated as Required (1), so you cannot reach a true off state. Real traffic at Required is already tiny.",
+    "whoBenefits": "Privacy-minded users on any edition; real 'off' only on Enterprise, Education or Server",
+    "tradeoff": "On Windows 11 Pro/Home, 0 is treated as Required (1), so the real effect differs from the label; only Enterprise/Education honour 0. Microsoft warns that fully off omits Windows Update failure information.",
     "evidence": [
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/privacy/telemetry/disallow-data-collection.yml",
-      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1",
+      "https://learn.microsoft.com/en-us/windows/privacy/configure-windows-diagnostic-data-in-your-organization",
+      "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-system",
+      "https://www.directionsonmicrosoft.com/node/47661"
     ],
-    "preset": "safe",
-    "verification": "from-notes"
+    "managedDeviceImpact": "Can conflict with the Intune diagnostics-data policy and with Windows Update for Business / Autopatch reporting, which need at least Required data."
   },
   {
     "id": "telemetry-datacollection-cv-policy",
@@ -190,11 +212,19 @@
     "projects": [
       "atlas"
     ],
-    "evidence": [
-      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/privacy/telemetry/disallow-data-collection.yml"
-    ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Writes the same diagnostic level to extra registry locations. It mostly duplicates the main policy and adds little on its own.",
+    "whoBenefits": "Users who want the policy applied redundantly",
+    "tradeoff": "Little extra effect; more keys to keep track of.",
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/privacy/telemetry/disallow-data-collection.yml",
+      "https://learn.microsoft.com/en-us/windows/privacy/configure-windows-diagnostic-data-in-your-organization"
+    ],
+    "managedDeviceImpact": "Can conflict with the Intune diagnostics-data policy and WUfB / Autopatch reporting."
   },
   {
     "id": "telemetry-disable-onesettings",
@@ -221,11 +251,18 @@
     "projects": [
       "privacy"
     ],
-    "evidence": [
-      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
-    ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Stops OneSettings configuration downloads. Microsoft says settings-win.data.microsoft.com sends no diagnostic data and is used for remote configuration, so blocking it saves almost nothing.",
+    "whoBenefits": "Privacy purists",
+    "tradeoff": "Microsoft advises against blocking this endpoint. It may delay remote fixes and feature config.",
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://learn.microsoft.com/en-us/windows/privacy/configure-windows-diagnostic-data-in-your-organization"
+    ]
   },
   {
     "id": "telemetry-no-feedback-notifications",
@@ -252,11 +289,18 @@
     "projects": [
       "perf-evidence"
     ],
-    "evidence": [
-      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
-    ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Hides feedback pop-ups. A nuisance fix, not a traffic or CPU saver.",
+    "whoBenefits": "Anyone annoyed by prompts",
+    "tradeoff": "None meaningful.",
+    "evidence": [
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ]
   },
   {
     "id": "telemetry-diagtrack-transcript",
@@ -325,7 +369,13 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/privacy/telemetry/disallow-data-collection.yml"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Turns off the local diagnostic event transcript and mini trace slot, and marks the diagnostic-data toast as already shown.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "The Diagnostic Data Viewer keeps less history, and there is less local diagnostic data for Microsoft support to look at."
   },
   {
     "id": "priv-autologgers-off",
@@ -374,7 +424,13 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/privacy/telemetry/disallow-data-collection.yml"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Stops three background trace sessions (Diagtrack-Listener, SQMLogger, SetupPlatformTel) from starting at boot.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "Less local diagnostic tracing for troubleshooting; takes effect after a restart. Admin tools that read those traces have nothing to read."
   },
   {
     "id": "priv-ceip-disable",
@@ -407,7 +463,13 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
     ],
     "preset": "safe",
-    "verification": "path-from-general-knowledge"
+    "verification": "path-from-general-knowledge",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Turns off the Customer Experience Improvement Program, which sends anonymous usage data to Microsoft.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "Microsoft gets less usage data from this PC. No visible loss. A policy from your organisation may already set it."
   },
   {
     "id": "priv-wer-disable",
@@ -460,67 +522,20 @@
       "atlas",
       "winutil"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured; Windows Error Reporting only sends data after a crash, so idle impact is nil",
+    "explanation": "Turns off Windows Error Reporting so crash data is not collected or sent. It is a privacy choice, not a speed gain.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "Lose crash dumps and Microsoft fix suggestions.",
     "evidence": [
       "https://revi.cc/docs/features",
-      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
-  },
-  {
-    "id": "priv-ifeo-block-compattel",
-    "category": "telemetry-privacy",
-    "description": "Block CompatTelRunner.exe and AggregatorHost.exe through Image File Execution Options.",
-    "implementation": {
-      "type": "multi",
-      "steps": [
-        {
-          "type": "registry",
-          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\CompatTelRunner.exe",
-          "name": "Debugger",
-          "valueType": "String",
-          "value": "cmd.exe"
-        },
-        {
-          "type": "registry",
-          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\AggregatorHost.exe",
-          "name": "Debugger",
-          "valueType": "String",
-          "value": "cmd.exe"
-        }
-      ]
-    },
-    "revert": {
-      "type": "multi",
-      "steps": [
-        {
-          "type": "registry",
-          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\CompatTelRunner.exe",
-          "name": "Debugger",
-          "action": "restoreSnapshot",
-          "ifAbsentBefore": "deleteValue"
-        },
-        {
-          "type": "registry",
-          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\AggregatorHost.exe",
-          "name": "Debugger",
-          "action": "restoreSnapshot",
-          "ifAbsentBefore": "deleteValue"
-        }
-      ]
-    },
-    "risk": "moderate",
-    "breaks": "Compatibility appraiser no longer runs; may affect feature-update readiness checks",
-    "ram_or_perf_effect": null,
-    "post_install_possible": true,
-    "projects": [
-      "revios"
-    ],
-    "evidence": [
-      "https://revi.cc/docs/features"
-    ],
-    "preset": "balanced",
-    "verification": "exact-value-unverified"
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://www.makeuseof.com/finally-fixed-my-ram-spikes-by-disabling-useless-windows-11-service/",
+      "https://learn.microsoft.com/en-us/windows/privacy/configure-windows-diagnostic-data-in-your-organization"
+    ]
   },
   {
     "id": "priv-firewall-block-diagtrack",
@@ -539,11 +554,19 @@
     "projects": [
       "revios"
     ],
-    "evidence": [
-      "https://revi.cc/docs/features"
-    ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Adds outbound firewall blocks for the telemetry and error reporting services. The data volume is small and Microsoft notes some traffic still appears in captures.",
+    "whoBenefits": "Users who want a belt-and-braces block",
+    "tradeoff": "Blocks the DiagTrack and WerSvc services from the network. Can break Windows Update diagnostics, error reporting and Windows Update for Business reporting.",
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "managedDeviceImpact": "Can interfere with Intune/Defender diagnostics and Windows Update reporting. Note: this entry is a firewall command, which the engine skips."
   },
   {
     "id": "priv-dotnet-ps-telemetry-optout",
@@ -600,7 +623,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Sets two machine-wide environment variables so the .NET command-line tools and PowerShell do not send usage telemetry.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "No loss for everyday use. Only affects developer tools, and only for programs started after the change."
   },
   {
     "id": "priv-contentdelivery-off",
@@ -745,14 +774,24 @@
       "win11debloat",
       "perf-evidence"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "not measured; fewer ads and suggestions rather than speed. Areas rated 1 and 2.",
+    "explanation": "Stops Windows from showing suggested apps, tips and promotions in Start, Settings and the lock screen, and from silently installing promoted apps. Mainly a cleaner desktop with a bit less background network traffic.",
+    "whoBenefits": "Anyone annoyed by ads and suggestions in Windows, especially new installs",
+    "tradeoff": "You stop seeing tips and suggested apps. Some of the policies are not supported on Pro per the Policy CSP table, and the policy does not cover every per-user Spotlight toggle.",
     "evidence": [
       "https://revi.cc/docs/features",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
       "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
-      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md",
+      "https://learn.microsoft.com/intune/device-configuration/templates/ref-device-restrictions-windows#windows-spotlight",
+      "https://learn.microsoft.com/windows/client-management/mdm/policy-csp-experience#configurewindowsspotlightonlockscreen",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services#25-personalized-experiences",
+      "https://www.pcworld.com/article/3622971/"
+    ]
   },
   {
     "id": "priv-consumer-features-off",
@@ -820,14 +859,23 @@
       "winutil",
       "privacy"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "not measured. Areas rated 1 and 2.",
+    "explanation": "Blocks consumer experiences, meaning auto-installed promotional apps that appear after setup or updates. Keeps Start tidy and avoids downloads you did not ask for.",
+    "whoBenefits": "Fresh installs, shared PCs and Enterprise/Education editions",
+    "tradeoff": "Microsoft honours this policy on Enterprise/Education; Pro behaviour is uncertain. Must be set within 15 minutes of install or baked into an image to take effect. Little performance gain.",
     "evidence": [
       "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1",
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
-      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://learn.microsoft.com/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services#how-to-configure-each-setting",
+      "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-experience",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services#25-personalized-experiences"
+    ]
   },
   {
     "id": "priv-advertising-id",
@@ -944,7 +992,13 @@
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Turns off the advertising ID, tailored experiences based on diagnostic data, and implicit ink and typing collection.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "Ads in apps become less personalised (they are not removed). Handwriting and typing suggestions may personalise less. The per-user (HKCU) parts apply to the user running the engine only."
   },
   {
     "id": "priv-activity-history",
@@ -1003,7 +1057,7 @@
       ]
     },
     "risk": "safe",
-    "breaks": "Winutil notes list EnableActivityFeed=1 which conflicts with intent; 0 used",
+    "breaks": null,
     "ram_or_perf_effect": null,
     "post_install_possible": true,
     "projects": [
@@ -1020,7 +1074,14 @@
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Turns off the activity feed and stops this PC from publishing or uploading your activity history.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "Features that resume activity across your devices stop working. History already collected is not deleted.",
+    "notes": "Winutil lists EnableActivityFeed=1 which conflicts with the intent; 0 is used here."
   },
   {
     "id": "priv-cdp-disable",
@@ -1047,11 +1108,18 @@
     "projects": [
       "privacy"
     ],
-    "evidence": [
-      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
-    ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Turns off the Connected Devices Platform used for Nearby Sharing, Phone Link and cross-device features. A small service, so mainly a privacy benefit.",
+    "whoBenefits": "Users with no Bluetooth/Nearby Sharing/Phone Link use",
+    "tradeoff": "Nearby Sharing, Phone Link and some device pairing features stop working.",
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://blog.kartones.net/post/disabling-unneeded-windows-11-services/index.html.md"
+    ]
   },
   {
     "id": "priv-app-launch-tracking-off",
@@ -1080,12 +1148,19 @@
       "win11debloat",
       "perf-evidence"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured. Areas rated 0 and 1.",
+    "explanation": "Stops Windows from recording which apps you launch to rank Start suggestions. A privacy setting with no measurable speed change.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "Start shows fewer personalized recommendations.",
     "evidence": [
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
-      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md",
+      "https://learn.microsoft.com/en-us/windows/configuration/start/policy-settings"
+    ]
   },
   {
     "id": "priv-search-cortana-bing-off",
@@ -1180,12 +1255,22 @@
       "privacy",
       "tiny11"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "not measured; reports say Start search waits on Microsoft servers before showing local results, with the biggest gain on older PCs",
+    "explanation": "Stops the Start menu from sending your typing to Bing and waiting for web results. Local apps and files then show up faster and web clutter goes away. One of the few shell tweaks you can actually feel.",
+    "whoBenefits": "Anyone who uses Start search for apps and files, especially on older PCs and slow connections",
+    "tradeoff": "You lose web answers in Start such as weather, unit conversion and web suggestions. On some builds DisableSearchBoxSuggestions does not fully suppress web results.",
     "evidence": [
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/Regfiles/Disable_Bing_Cortana_In_Search.reg",
-      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://tomshardware.com/software/windows/ex-windows-developer-calls-windows-11-start-menu-performance-comically-bad-even-with-a-core-i9-and-128gb-of-ram",
+      "https://www.popsci.com/?p=512122",
+      "https://maketecheasier.com/stop-windows-start-menu-showing-bing-results",
+      "https://www.tomshardware.com/how-to/disable-windows-web-search"
+    ]
   },
   {
     "id": "priv-font-providers-off",
@@ -1216,7 +1301,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Stops Windows from downloading fonts on demand from Microsoft online font providers.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "Documents that rely on a cloud font show a substitute font until you install it yourself."
   },
   {
     "id": "priv-storage-health-updates-off",
@@ -1247,7 +1338,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Stops Windows from downloading updated disk-health prediction models.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "Disk-health warnings use the model already on the PC, which may become slightly out of date."
   },
   {
     "id": "priv-find-my-device-off",
@@ -1278,7 +1375,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable Find My Device.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "Cannot locate a lost device"
   },
   {
     "id": "priv-settings-sync-off",
@@ -1333,7 +1436,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable settings sync and block user override.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "None documented."
   },
   {
     "id": "priv-location-deny",
@@ -1398,12 +1507,19 @@
       "win11debloat",
       "perf-evidence"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Denies location access and disables map updates. A privacy gain more than a performance one.",
+    "whoBenefits": "Desktop users who never need location",
+    "tradeoff": "Breaks Maps, weather and Find My Device. Disabling GeoLocation reportedly breaks Start search on new accounts.",
     "evidence": [
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
-      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md",
+      "https://github.com/W4RH4WK/Debloat-Windows-10"
+    ]
   },
   {
     "id": "priv-activation-no-genticket",
@@ -1434,7 +1550,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Stop genuine ticket generation.",
+    "whoBenefits": "Users with a specific need",
+    "tradeoff": "Store genuine validation tickets may not be issued"
   },
   {
     "id": "priv-apps-deny-sensors",
@@ -1503,7 +1625,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "aggressive",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Force-deny app access to camera, microphone, location.",
+    "whoBenefits": "Privacy-minded users",
+    "tradeoff": "Video calls, voice input, maps in UWP apps stop working"
   },
   {
     "id": "priv-defender-cloud-reporting-off",
@@ -1547,12 +1675,20 @@
       "privacy",
       "winutil"
     ],
+    "preset": "never-default",
+    "verification": "mixed",
+    "effectiveness": 0,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured. Microsoft describes the cloud payload as small and sent only when local engines cannot decide.",
+    "explanation": "Turns off Defender cloud reporting and sample submission. Traffic is small, so you save almost nothing, while protection against new threats gets weaker.",
+    "whoBenefits": "Almost no one for performance reasons",
+    "tradeoff": "Reduces protection against new malware. Treat 'turn MAPS off to save traffic' claims as unmeasured.",
     "evidence": [
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
-      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
-    ],
-    "preset": "never-default",
-    "verification": "mixed"
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://learn.microsoft.com/defender-endpoint/cloud-protection-microsoft-antivirus-sample-submission",
+      "https://learn.microsoft.com/sl-si/windows/client-management/mdm/policy-csp-defender"
+    ]
   },
   {
     "id": "priv-security-maintenance-toast-off",
@@ -1579,29 +1715,81 @@
     "projects": [
       "revios"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Hides Security and Maintenance pop-up notifications. This reduces noise but also hides warnings.",
+    "whoBenefits": "People who find those pop-ups annoying",
+    "tradeoff": "You may miss useful security alerts.",
     "evidence": [
       "https://github.com/meetrevision/playbook/blob/c6c6e7572c19de403f6acef80717c35fa344f366/src/Configuration/Tasks/start.yml"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+    ]
   },
   {
     "id": "task-office-telemetry-off",
     "category": "scheduled-tasks",
-    "description": "Disable all Office telemetry scheduled tasks.",
+    "description": "Disable the Office Telemetry Agent scheduled tasks (explicit names only).",
     "implementation": {
-      "type": "task",
-      "path": "\\Microsoft\\Office\\",
-      "name": "*",
-      "state": "Disabled"
+      "type": "multi",
+      "steps": [
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Office\\",
+          "name": "OfficeTelemetryAgentLogOn",
+          "state": "Disabled"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Office\\",
+          "name": "OfficeTelemetryAgentFallBack",
+          "state": "Disabled"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Office\\",
+          "name": "OfficeTelemetryAgentLogOn2016",
+          "state": "Disabled"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Office\\",
+          "name": "OfficeTelemetryAgentFallBack2016",
+          "state": "Disabled"
+        }
+      ]
     },
     "revert": {
-      "type": "task",
-      "path": "x",
-      "name": "*",
-      "state": "restoreSnapshot"
+      "type": "multi",
+      "steps": [
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Office\\",
+          "name": "OfficeTelemetryAgentLogOn",
+          "state": "restoreSnapshot"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Office\\",
+          "name": "OfficeTelemetryAgentFallBack",
+          "state": "restoreSnapshot"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Office\\",
+          "name": "OfficeTelemetryAgentLogOn2016",
+          "state": "restoreSnapshot"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Office\\",
+          "name": "OfficeTelemetryAgentFallBack2016",
+          "state": "restoreSnapshot"
+        }
+      ]
     },
-    "risk": "safe",
+    "risk": "moderate",
     "breaks": null,
     "ram_or_perf_effect": null,
     "post_install_possible": true,
@@ -1611,8 +1799,15 @@
     "evidence": [
       "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml"
     ],
-    "preset": "safe",
-    "verification": "from-notes"
+    "preset": "balanced",
+    "verification": "names-partly-verified",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Turns off the scheduled tasks that run the Office Telemetry Agent (the optional Telemetry Dashboard collector). Only these four task names are touched. The Office Automatic Updates, ClickToRun Service Monitor and subscription tasks in the same folder are NOT touched. Microsoft Learn documents OfficeTelemetryAgentLogOn; the FallBack and 2016 variants are the same agent on other Office builds and are skipped if absent.",
+    "whoBenefits": "Home or small-office users who do not use the Office Telemetry Dashboard",
+    "tradeoff": "If your organisation uses the Office Telemetry Dashboard, this PC stops reporting to it. Office itself and its updates are unaffected.",
+    "managedDeviceImpact": "Only relevant where an admin runs the Telemetry Dashboard; otherwise none."
   },
   {
     "id": "task-telemetry-set",
@@ -1696,12 +1891,21 @@
       "tiny11",
       "revios"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 2,
+    "evidenceQuality": "weak",
+    "measuredEffect": "Anecdotal CPU and disk spikes up to about 20 minutes from CompatTelRunner; no benchmark. Areas rated 1 and 3; reconciled to 2.",
+    "explanation": "Disables telemetry scheduled tasks such as the Compatibility Appraiser. These are the best-known source of CompatTelRunner CPU and disk bursts, so this is the telemetry tweak most likely to be noticed on weaker PCs.",
+    "whoBenefits": "HDD, low-end or older PCs with startup or idle spikes",
+    "tradeoff": "Windows upgrade readiness checks and feature-update gating can behave differently because the Compatibility Appraiser is disabled; Windows may re-enable the tasks. Evidence is forum and vendor articles, not Microsoft data.",
     "evidence": [
       "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
-      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml"
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml",
+      "https://wisechecker.com/?p=21881",
+      "https://helpdeskgeek.com/what-is-compattelrunner-exe-in-windows-10-and-can-it-be-disabled/"
     ],
-    "preset": "safe",
-    "verification": "from-notes"
+    "managedDeviceImpact": "The Appraiser feeds feature-update readiness and compatibility gating that Windows Update for Business / Autopatch can rely on; check with your admin."
   },
   {
     "id": "svc-diagtrack-disable",
@@ -1729,14 +1933,26 @@
       "winutil",
       "privacy"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "PCGH (May 2025, 7800X3D, standard vs Nano 11 debloat): average gaming FPS unchanged. Microsoft-disclosed telemetry volume at Required level about 100-160 KB/day (old, Win10 1703). Background reviewers report steadier memory but no numbers. Areas rated this 0-2; reconciled to 1.",
+    "explanation": "Stops the telemetry service (Connected User Experiences and Telemetry). Windows Update, activation and Defender keep working. It is mainly a privacy measure: traffic is small and a controlled test showed no FPS change.",
+    "whoBenefits": "Privacy-minded users; people who see CompatTelRunner or telemetry spikes",
+    "tradeoff": "Pauses compatibility telemetry and Feedback Hub. May interfere with Insider enrollment. Windows can re-enable it after updates. Deleting the service (some scripts do) can block ESU enrollment; disabling is safer.",
     "evidence": [
       "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/services.yml",
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
-      "https://raw.githubusercontent.com/farag2/Sophia-Script-for-Windows/master/README.md"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/farag2/Sophia-Script-for-Windows/master/README.md",
+      "https://www.makeuseof.com/finally-fixed-my-ram-spikes-by-disabling-useless-windows-11-service/",
+      "https://www.xda-developers.com/i-disabled-these-5-windows-11-background-services-and-saw-zero-downsides/",
+      "https://wisechecker.com/?p=21881",
+      "https://www.pcgameshardware.de/Windows-Software-277633/News/Standard-gegen-Nano-Debloat-Gaming-Performance-1472429/",
+      "https://www.winhelponline.com/blog/diagtrack-connected-user-experiences-and-telemetry-service/",
+      "https://www.directionsonmicrosoft.com/node/47661"
+    ]
   },
   {
     "id": "svc-diag-compat-set",
@@ -1808,12 +2024,19 @@
       "revios",
       "atlas"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disables error reporting and the program compatibility assistant. These are small services that mostly sleep, so the saving is tiny.",
+    "whoBenefits": "Privacy-focused users",
+    "tradeoff": "No crash reports or compatibility prompts for old programs, which makes troubleshooting harder.",
     "evidence": [
       "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml",
-      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/services.yml"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/services.yml",
+      "https://techfuelhq.com/articles/debloat-windows-11-2026/"
+    ]
   },
   {
     "id": "svc-wdi-dam-wisvc-wecsvc",
@@ -1837,8 +2060,7 @@
         {
           "type": "service",
           "name": "dam",
-          "startType": "Disabled",
-          "stockDefaultHint": "Manual (3)"
+          "startType": "Disabled"
         },
         {
           "type": "service",
@@ -1896,11 +2118,18 @@
     "projects": [
       "revios"
     ],
-    "evidence": [
-      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml"
-    ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disables diagnostic policy hosts, desktop activity moderator, Insider service and event collector. Mostly idle services.",
+    "whoBenefits": "Tweakers on gaming-only PCs",
+    "tradeoff": "Built-in troubleshooters stop working; Insider builds break; the activity moderator also manages power behavior.",
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml",
+      "https://blog.kartones.net/post/disabling-unneeded-windows-11-services/index.html.md"
+    ]
   },
   {
     "id": "svc-onesync-trkwks",
@@ -1948,12 +2177,19 @@
       "atlas",
       "winutil"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disables mail/contacts sync and link tracking. Small services.",
+    "whoBenefits": "Users with no Mail/Calendar app sync",
+    "tradeoff": "Mail, People and Calendar apps stop syncing.",
     "evidence": [
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/services.yml",
-      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://blog.kartones.net/post/disabling-unneeded-windows-11-services/index.html.md"
+    ]
   },
   {
     "id": "svc-ucpd-disable",
@@ -2006,7 +2242,13 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/services.yml"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable UCPD driver and its scheduled task (reboot needed).",
+    "whoBenefits": "Tweakers who want fewer background services",
+    "tradeoff": "Removes Microsoft default-app hijack protection"
   },
   {
     "id": "drv-netbt-gpuenergy-telemetry",
@@ -2055,46 +2297,28 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/services.yml"
     ],
     "preset": "aggressive",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable NetBT, GpuEnergyDrv, tcpipreg and Telemetry driver entries (registry Start=4, reboot).",
+    "whoBenefits": "Tweakers who want fewer background services",
+    "tradeoff": "NetBIOS name resolution, legacy SMB discovery; tcpipreg flagged experimental by ReviOS"
   },
   {
     "id": "svc-edgeupdate-manual-condrv-auto",
     "category": "services",
-    "description": "edgeupdate Manual (do not disable) and condrv Automatic to fix 0xd000003a.",
+    "description": "Set the Edge updater service (edgeupdate) to Manual instead of disabling it.",
     "implementation": {
-      "type": "multi",
-      "steps": [
-        {
-          "type": "service",
-          "name": "edgeupdate",
-          "startType": "Manual"
-        },
-        {
-          "type": "registry",
-          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\condrv",
-          "name": "Start",
-          "valueType": "DWord",
-          "value": 2
-        }
-      ]
+      "type": "service",
+      "name": "edgeupdate",
+      "startType": "Manual"
     },
     "revert": {
-      "type": "multi",
-      "steps": [
-        {
-          "type": "service",
-          "name": "edgeupdate",
-          "startType": "restoreSnapshot",
-          "stockDefaultHint": null
-        },
-        {
-          "type": "registry",
-          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\condrv",
-          "name": "Start",
-          "action": "restoreSnapshot",
-          "ifAbsentBefore": "deleteValue"
-        }
-      ]
+      "type": "service",
+      "name": "edgeupdate",
+      "startType": "restoreSnapshot",
+      "stockDefaultHint": null
     },
     "risk": "safe",
     "breaks": null,
@@ -2103,11 +2327,57 @@
     "projects": [
       "revios"
     ],
-    "evidence": [
-      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml"
-    ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Sets the Edge update service to start on demand instead of at boot. Edge still updates itself through its own scheduled update tasks; this does not disable updating.",
+    "whoBenefits": "Everyone, as a safe default",
+    "tradeoff": "Edge updates can be delayed if the updater tasks are also disabled; Manual alone normally does not stop updates.",
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml",
+      "https://learn.microsoft.com/deployedge/microsoft-edge-policies#available-policies"
+    ],
+    "managedDeviceImpact": "Edge updates may be governed by Intune or Edge update policy; check with your admin."
+  },
+  {
+    "id": "svc-condrv-auto",
+    "category": "services",
+    "description": "Set the console driver (condrv) to start automatically (fix for error 0xd000003a).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\condrv",
+      "name": "Start",
+      "valueType": "DWord",
+      "value": 2
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\condrv",
+      "name": "Start",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured; a stability fix, not a speed-up",
+    "explanation": "Sets the Windows console driver service to start automatically. Reported as a fix for console apps failing with 0xd000003a after other services were changed. It is only useful if you hit that error.",
+    "whoBenefits": "Only people who see error 0xd000003a in console apps",
+    "tradeoff": "Changes a kernel-driver start type for a problem most PCs do not have.",
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml",
+      "https://learn.microsoft.com/deployedge/microsoft-edge-policies#available-policies"
+    ]
   },
   {
     "id": "svc-wsaifabric-manual",
@@ -2134,12 +2404,19 @@
       "winutil",
       "tiny11"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Stops the Windows AI Fabric service from starting automatically. Safe because Manual still allows on-demand start.",
+    "whoBenefits": "PCs not using Windows AI features or without an NPU",
+    "tradeoff": "None for most users. Disabled (rather than Manual) can break AI features. Only source is Win11Debloat release notes.",
     "evidence": [
       "https://github.com/Raphire/Win11Debloat",
-      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md",
+      "https://techfuelhq.com/articles/debloat-windows-11-2026/"
+    ]
   },
   {
     "id": "svc-cscservice-sharedaccess-off",
@@ -2190,7 +2467,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured; catalog note: Reviewer measured 100 MB or less",
+    "explanation": "Winutil: CscService and SharedAccess Disabled.",
+    "whoBenefits": "Tweakers who want fewer background services",
+    "tradeoff": "Offline Files; Internet Connection Sharing, Hyper-V/WSL NAT"
   },
   {
     "id": "svc-wlidsvc-disable",
@@ -2219,7 +2502,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "aggressive",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable Microsoft Account Sign-in Assistant.",
+    "whoBenefits": "Tweakers who want fewer background services",
+    "tradeoff": "MSA sign-in, Store, Xbox, OneDrive auth"
   },
   {
     "id": "svc-licensemanager-disable",
@@ -2248,7 +2537,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "aggressive",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable License Manager.",
+    "whoBenefits": "Tweakers who want fewer background services",
+    "tradeoff": "Store app licensing and installs"
   },
   {
     "id": "svc-w32time-nosync",
@@ -2279,7 +2574,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "never-default",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable time sync (Type NoSync).",
+    "whoBenefits": "Tweakers who want fewer background services",
+    "tradeoff": "Clock drift breaks TLS, Kerberos, certificates"
   },
   {
     "id": "pwr-hibernate-off",
@@ -2300,14 +2601,22 @@
       "atlas",
       "winutil"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured; frees the hibernation file disk space",
+    "explanation": "Turns off hibernation, which also removes the hibernation file and disables Fast Startup. You get disk space back but lose hibernate and faster boots.",
+    "whoBenefits": "Small-SSD desktops that never hibernate and need the disk space",
+    "tradeoff": "Boots slower (same cost as disabling Fast Startup) and you lose hibernate. Bad for laptops.",
     "evidence": [
       "https://github.com/meetrevision/playbook/blob/c6c6e7572c19de403f6acef80717c35fa344f366/src/Configuration/Tasks/start.yml",
       "https://revi.cc/docs/faq/troubleshoot/overheating",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/scripts/script-power.yml",
-      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://www.techrepublic.com/article/take-control-fast-startup-windows/",
+      "https://www.dedoimedo.com/computers/windows-11-fast-startup-disable.html"
+    ]
   },
   {
     "id": "pwr-fast-startup-off",
@@ -2336,12 +2645,21 @@
       "win11debloat",
       "perf-evidence"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "Single-machine test: about 4 s boot with Fast Startup on vs about 9-10 s off (NVMe). Unverified estimate: 10-30 s slower depending on drive. Areas rated 0 and 1.",
+    "explanation": "Makes Shut down a real full shutdown instead of a hybrid hibernate. This clears stale state and avoids odd issues with updates, drivers or dual boot. It is a stability / clean-boot tweak and makes boot SLOWER, not faster.",
+    "whoBenefits": "People with dual boot, shutdown or update glitches",
+    "tradeoff": "Slower boot from Shut down (about 4 s with Fast Startup on vs 9-10 s off in one NVMe test, more on slower disks). Restart is unaffected.",
     "evidence": [
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/scripts/script-power.yml",
-      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md",
+      "https://www.dedoimedo.com/computers/windows-11-fast-startup-disable.html",
+      "https://www.techrepublic.com/article/take-control-fast-startup-windows/",
+      "https://learn.microsoft.com/windows/win32/power/system-power-states#hibernate-state-s4"
+    ]
   },
   {
     "id": "pwr-ultra-performance-plan",
@@ -2361,12 +2679,20 @@
       "revios",
       "winutil"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 2,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "ComputerBase 2017 (Ryzen 1800X, Win10, confounded with HPET): about 2% geometric mean, up to about 17% in one game, 0% in four titles; idle power 53 W vs 62 W. Mostly a core-parking issue on first-gen Ryzen, since fixed. No controlled modern frame-time data found.",
+    "explanation": "Keeps the CPU at high clocks and stops it parking cores or dropping speed when idle, so there is less ramp-up delay when work arrives. On modern CPUs the average difference is usually within noise but it can reduce stutter in some CPU-bound scenes.",
+    "whoBenefits": "Desktop users with latency-sensitive workloads (games, audio) who can accept higher idle power and heat",
+    "tradeoff": "Higher idle power, heat and fan noise. Not for laptops on battery. Benchmark three runs per plan before keeping it.",
     "evidence": [
       "https://github.com/meetrevision/playbook/blob/c6c6e7572c19de403f6acef80717c35fa344f366/src/Configuration/Tasks/start.yml",
-      "https://revi.cc/docs/features"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://revi.cc/docs/features",
+      "https://www.evezone.evetech.co.za/quick-bytes/windows-power-plans-desktops-does-ultimate-performance-matter",
+      "https://www.computerbase.de/2017-03/ryzen-windows-7-benchmark-core-parking/"
+    ]
   },
   {
     "id": "pwr-balanced-plan",
@@ -2385,11 +2711,18 @@
     "projects": [
       "atlas"
     ],
-    "evidence": [
-      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/scripts/script-power.yml"
-    ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "Not measured on modern hardware; Balanced vs High Performance showed about 2% on a 2017 Ryzen setup, mostly from the old core-parking issue.",
+    "explanation": "Restores the default Balanced plan, which saves power at idle. On current CPUs it gives almost the same gaming speed as high-performance plans.",
+    "whoBenefits": "Laptops and anyone who wants lower idle power and noise without losing real gaming speed",
+    "tradeoff": "Possibly a few percent lower in rare CPU-bound scenes on some systems.",
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/scripts/script-power.yml",
+      "https://www.computerbase.de/2017-03/ryzen-windows-7-benchmark-core-parking/"
+    ]
   },
   {
     "id": "perf-memory-compression-off",
@@ -2408,12 +2741,18 @@
     "projects": [
       "revios"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disables RAM compression. It trades a little CPU for memory pressure, with no benchmark showing a gaming gain. It can hurt on 8 GB machines.",
+    "whoBenefits": "Systems with 32 GB or more where it is harmless but unneeded",
+    "tradeoff": "More paging on low-RAM systems.",
     "evidence": [
       "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml",
       "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+    ]
   },
   {
     "id": "perf-ntfs-lastaccess",
@@ -2438,7 +2777,13 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured; catalog note: Fewer metadata writes",
+    "explanation": "Stops NTFS from updating the last-accessed time stamp each time a file is read, which saves a few small disk writes.",
+    "whoBenefits": "Users who want to fine-tune Windows behaviour",
+    "tradeoff": "Last-access times are no longer reliable; some backup, search and forensic tools that use them behave differently. Takes effect after a restart."
   },
   {
     "id": "perf-ntfs-8dot3-off",
@@ -2463,7 +2808,13 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable 8.3 short-name creation.",
+    "whoBenefits": "Users who want to fine-tune Windows behaviour",
+    "tradeoff": "Legacy installers / backup tools relying on 8.3 names"
   },
   {
     "id": "perf-svchost-split-threshold",
@@ -2492,13 +2843,20 @@
       "atlas",
       "winutil"
     ],
+    "preset": "balanced",
+    "verification": "value-inferred",
+    "effectiveness": 0,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "fewer processes in Task Manager; in controlled debloat tests RAM saved was within 100-200 MB at most",
+    "explanation": "Lets services share svchost processes so the Task Manager list looks shorter. Total memory used barely changes, and a crash in one service can take more with it.",
+    "whoBenefits": "Mostly cosmetic",
+    "tradeoff": "Less isolation between services, harder troubleshooting. Placebo for performance.",
     "evidence": [
       "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
-      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
-    ],
-    "preset": "balanced",
-    "verification": "value-inferred"
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://techfuelhq.com/articles/debloat-windows-11-2026/"
+    ]
   },
   {
     "id": "perf-win32priority-separation",
@@ -2526,12 +2884,21 @@
       "revios",
       "atlas"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured; no controlled FPS, frametime or input-lag benchmark of 0x26 (38) vs the default found on Win10 or Win11",
+    "explanation": "Windows already gives the window you are using a short priority boost. This setting changes how long programs run before the scheduler switches. 0x26 is what the Control Panel 'best performance for programs' option writes, so it is safe, but nobody has shown a measurable gain.",
+    "whoBenefits": "Users who run one heavy foreground app on a saturated CPU; most people will not notice",
+    "tradeoff": "Background tasks such as indexing or encoding get a little less CPU while you work. Community advice on 'best' values is trial and error, not data.",
     "evidence": [
       "https://revi.cc/docs/features",
-      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/performance/system/win32-priority-separation.yml"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/performance/system/win32-priority-separation.yml",
+      "https://learn.microsoft.com/windows/win32/procthread/priority-boosts",
+      "https://forums.blurbusters.com/viewtopic.php?p=69552",
+      "https://learn.microsoft.com/windows/win32/procthread/scheduling-priorities"
+    ]
   },
   {
     "id": "perf-shutdown-timeouts",
@@ -2652,26 +3019,27 @@
     "projects": [
       "revios"
     ],
-    "evidence": [
-      "https://revi.cc/docs/features"
-    ],
     "preset": "balanced",
-    "verification": "values-partly-inferred"
+    "verification": "values-partly-inferred",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured; only a perceived speedup is reported for MenuShowDelay=0 (default commonly cited as 400 ms)",
+    "explanation": "Shortens how long Windows waits for stuck apps and services at shutdown, and removes the hover delay before cascading menus open. The menu part is cosmetic and only affects classic Win32 menus.",
+    "whoBenefits": "Users whose shutdowns hang on unresponsive apps, or who dislike the cascading menu delay",
+    "tradeoff": "Shorter shutdown timeouts can cut off apps that are still saving data. Submenus may open accidentally while moving the mouse.",
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://malwaretips.com/resources/windows-11-feels-slow-this-one-registry-tweak-made-my-right-click-menus-instant.23/updates",
+      "https://learn.microsoft.com/answers/a/12902582"
+    ]
   },
   {
     "id": "perf-gamedvr-off",
     "category": "performance",
-    "description": "Disable Game DVR background recording and FSE behaviour.",
+    "description": "Disable Game DVR background recording.",
     "implementation": {
       "type": "multi",
       "steps": [
-        {
-          "type": "registry",
-          "path": "HKCU:\\System\\GameConfigStore",
-          "name": "GameDVR_FSEBehaviorMode",
-          "valueType": "DWord",
-          "value": 0
-        },
         {
           "type": "registry",
           "path": "HKCU:\\System\\GameConfigStore",
@@ -2691,13 +3059,6 @@
     "revert": {
       "type": "multi",
       "steps": [
-        {
-          "type": "registry",
-          "path": "HKCU:\\System\\GameConfigStore",
-          "name": "GameDVR_FSEBehaviorMode",
-          "action": "restoreSnapshot",
-          "ifAbsentBefore": "deleteValue"
-        },
         {
           "type": "registry",
           "path": "HKCU:\\System\\GameConfigStore",
@@ -2723,13 +3084,22 @@
       "atlas",
       "win11debloat"
     ],
+    "preset": "safe",
+    "verification": "value-inferred",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "Laptopmedia (GTA V, MX150 laptop): about 0.3 FPS difference while recording, within run noise.",
+    "explanation": "Turns off Game DVR background recording and the Game Bar capture hooks. The measured FPS cost of recording is tiny, so the gain is small, mostly on weak PCs.",
+    "whoBenefits": "Low-end or budget systems, and anyone who never uses Xbox Game Bar clips",
+    "tradeoff": "You lose Win+Alt+R clip capture and Game Bar recording. Fast, safe and easily reversed.",
     "evidence": [
       "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
-      "https://github.com/Raphire/Win11Debloat"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+      "https://github.com/Raphire/Win11Debloat",
+      "https://www.laptopmedia.com/news/game-dvr-fps-performance-impact-while-recording-at-different-settings/",
+      "https://learn.microsoft.com/en-us/answers/questions/1242737/how-to-block-screen-recording-in-the-gaming-app",
+      "https://evezone.evetech.co.za/daily-drop/gaming-dvr-disabled-gaming-performance"
+    ]
   },
   {
     "id": "perf-background-apps-off",
@@ -2782,13 +3152,22 @@
       "winutil",
       "privacy"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "Debloat-tool tests saved at most 100-200 MB RAM in total. Windows 10 Game Mode tests: about +6 fps only under heavy background load, 0-1 fps on clean systems. One guide reports 187 to 141 background processes combined with many other changes.",
+    "explanation": "Stops Store apps from running in the background when you are not using them. Helps most on PCs with many Store apps installed.",
+    "whoBenefits": "Laptops and low-RAM PCs with many Store apps",
+    "tradeoff": "Live tiles, notifications and mail/calendar sync from Store apps may be delayed.",
     "evidence": [
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
-      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://www.digitnaut.com/2026/02/windows-11-debloater-ultimate-performance-guide.html",
+      "https://digitalcitizen.life/game-mode-windows-10-performance",
+      "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html"
+    ]
   },
   {
     "id": "perf-explorer-autodiscovery-off",
@@ -2816,12 +3195,18 @@
       "atlas",
       "winutil"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Stops Explorer from scanning folder contents to pick a view. In folders with very many files this can cut the delay when a folder first opens.",
+    "whoBenefits": "Anyone with huge folders that open slowly in Explorer",
+    "tradeoff": "Folders may not pick the best view automatically, so you set views by hand.",
     "evidence": [
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+    ]
   },
   {
     "id": "perf-fth-disable",
@@ -2848,11 +3233,17 @@
     "projects": [
       "atlas"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disables a feature that applies fixes to apps that keep crashing. It does not raise FPS and removes a stability helper.",
+    "whoBenefits": "Almost no one",
+    "tradeoff": "Crashing apps no longer get automatic mitigation.",
     "evidence": [
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+    ]
   },
   {
     "id": "perf-sleepstudy-off",
@@ -2899,7 +3290,13 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable Sleep Study diagnostic logs.",
+    "whoBenefits": "Users who want to fine-tune Windows behaviour",
+    "tradeoff": "None documented."
   },
   {
     "id": "perf-reserved-storage-off",
@@ -2926,7 +3323,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured; catalog note: Frees about 7 GB disk",
+    "explanation": "Disable Reserved Storage (~7 GB).",
+    "whoBenefits": "Users who want to fine-tune Windows behaviour",
+    "tradeoff": "Feature updates may fail on low disk space"
   },
   {
     "id": "perf-storage-sense-off",
@@ -2958,7 +3361,13 @@
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Turns off Storage Sense, which automatically deletes temp files and old Recycle Bin items.",
+    "whoBenefits": "Users who want to fine-tune Windows behaviour",
+    "tradeoff": "Temp files and the Recycle Bin are no longer cleaned automatically, so disk space is freed less often."
   },
   {
     "id": "perf-delete-temp-files",
@@ -2970,8 +3379,8 @@
       "undo": null
     },
     "revert": "not reversible",
-    "risk": "safe",
-    "breaks": null,
+    "risk": "moderate",
+    "breaks": "Running installers or updates can fail if their working files are deleted.",
     "ram_or_perf_effect": null,
     "post_install_possible": true,
     "projects": [
@@ -2980,8 +3389,15 @@
     "evidence": [
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
     ],
-    "preset": "safe",
-    "verification": "from-notes"
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Deletes everything in your temp folder and in C:\\Windows\\Temp. It frees disk space, but files cannot be restored.",
+    "whoBenefits": "People who want to reclaim a little disk space",
+    "tradeoff": "Not reversible. Can remove in-flight installer or Intune Management Extension working files, and files an open program still needs.",
+    "managedDeviceImpact": "Can disturb app installs or Intune Management Extension runs that are in progress."
   },
   {
     "id": "perf-dism-cleanup-resetbase",
@@ -3004,7 +3420,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Component store cleanup with /ResetBase.",
+    "whoBenefits": "Users who want to fine-tune Windows behaviour",
+    "tradeoff": "Cannot uninstall superseded updates"
   },
   {
     "id": "perf-bootmenu-legacy",
@@ -3029,7 +3451,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/feature.json"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Legacy F8 boot menu policy.",
+    "whoBenefits": "Users who want to fine-tune Windows behaviour",
+    "tradeoff": "None documented."
   },
   {
     "id": "net-delivery-optimization-off",
@@ -3061,14 +3489,24 @@
       "privacy",
       "perf-evidence"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 2,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "2Pint 25-client enterprise LAN test: default DO moved 26 GB, basic tuning 14 GB, tuned plus DNS-SD 11 GB over 4 hours (download side, forced updates). Measures an enterprise LAN, not a home PC; no consumer upload measurement exists.",
+    "explanation": "Stops your PC from sharing update files with other PCs on the internet. This is one of the few tweaks with a documented effect on bandwidth, mainly your upload.",
+    "whoBenefits": "Home users on slow or capped upstream links; metered connections",
+    "tradeoff": "Microsoft says turning DO off does not stop downloads. On a LAN, peering can reduce WAN traffic, so mode 0 can raise it. Mode 100 is deprecated and can cause error 0x80d03002.",
     "evidence": [
       "https://revi.cc/docs/features",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
-      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://www.xda-developers.com/i-disabled-these-5-windows-11-background-services-and-saw-zero-downsides/",
+      "https://learn.microsoft.com/en-us/windows/deployment/do/waas-delivery-optimization-faq",
+      "https://2pintsoftware.com/news/details/lies-damned-lies-and-statistics---delivery-optimization-by-the-numbers",
+      "https://learn.microsoft.com/windows/deployment/do/waas-delivery-optimization-reference"
+    ]
   },
   {
     "id": "net-ntp-pool",
@@ -3093,7 +3531,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/feature.json"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Points the Windows clock at pool.ntp.org instead of the default Microsoft time server.",
+    "whoBenefits": "Users with specific network needs",
+    "tradeoff": "Do not use on domain-joined machines. The engine always skips this on managed devices because time sync is controlled by organisation policy."
   },
   {
     "id": "net-ipv6-disable",
@@ -3124,7 +3568,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable IPv6 components.",
+    "whoBenefits": "Users with specific network needs",
+    "tradeoff": "Some VPNs, Xbox networking; Microsoft advises against"
   },
   {
     "id": "net-teredo-disable",
@@ -3157,7 +3607,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "aggressive",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable Teredo.",
+    "whoBenefits": "Users with specific network needs",
+    "tradeoff": "Some Xbox features, DO peering"
   },
   {
     "id": "net-ncsi-active-probe-off",
@@ -3184,11 +3640,18 @@
     "projects": [
       "privacy"
     ],
-    "evidence": [
-      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
-    ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "Single small HTTP GET per network change event",
+    "explanation": "Stops the small web check Windows uses to decide whether you are online. That probe is a tiny request, so the saving is negligible.",
+    "whoBenefits": "Isolated networks or privacy purists",
+    "tradeoff": "Windows may show 'no internet' and some apps misbehave.",
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://learn.microsoft.com/en-us/windows-server/networking/ncsi/ncsi-frequently-asked-questions"
+    ]
   },
   {
     "id": "net-maps-autoupdate-off",
@@ -3215,11 +3678,19 @@
     "projects": [
       "privacy"
     ],
-    "evidence": [
-      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
-    ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Stops automatic download of offline maps. Documented by Microsoft and harmless, but it only matters if you have downloaded maps.",
+    "whoBenefits": "Metered or slow connections with offline maps installed",
+    "tradeoff": "Offline maps in the Maps app stay out of date. Do not disable the MapsBroker service instead.",
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://blog.kartones.net/post/disabling-unneeded-windows-11-services/index.html.md",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services#15-offline-maps"
+    ]
   },
   {
     "id": "net-device-metadata-off",
@@ -3250,12 +3721,18 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Stops Windows from downloading device icons and descriptions from the internet when you plug in hardware.",
+    "whoBenefits": "Users with specific network needs",
+    "tradeoff": "New hardware may show a generic name or icon in Devices and Printers. Drivers still install normally."
   },
   {
     "id": "net-smb-anon-restrict",
     "category": "network",
-    "description": "Restrict anonymous SAM/share enumeration; disable SMB client bandwidth throttling.",
+    "description": "Restrict anonymous SAM/share enumeration.",
     "implementation": {
       "type": "multi",
       "steps": [
@@ -3272,11 +3749,6 @@
           "name": "RestrictAnonymousSAM",
           "valueType": "DWord",
           "value": 1
-        },
-        {
-          "type": "command",
-          "run": "Set-SmbClientConfiguration -EnableBandwidthThrottling $false -Force",
-          "undo": "Set-SmbClientConfiguration -EnableBandwidthThrottling $true -Force"
         }
       ]
     },
@@ -3296,8 +3768,7 @@
           "name": "RestrictAnonymousSAM",
           "action": "restoreSnapshot",
           "ifAbsentBefore": "deleteValue"
-        },
-        "Set-SmbClientConfiguration -EnableBandwidthThrottling $true -Force"
+        }
       ]
     },
     "risk": "safe",
@@ -3311,53 +3782,43 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Stops anonymous (not signed-in) network users from listing account names and shares on this PC. A standard hardening setting.",
+    "whoBenefits": "Users with specific network needs",
+    "tradeoff": "Old tools and some legacy devices that browse shares anonymously stop being able to list them. Signed-in access is unaffected.",
+    "managedDeviceImpact": "Often already set by a security baseline or Group Policy; the two values here may be overwritten at the next policy refresh."
   },
   {
-    "id": "net-tcp-bbr2",
+    "id": "net-smb-client-throttling-off",
     "category": "network",
-    "description": "BBRv2 congestion control (unsupported / unverified).",
+    "description": "Disable SMB client bandwidth throttling (command step; skipped by the engine).",
     "implementation": {
       "type": "command",
-      "run": "netsh int tcp set supplemental template=internet congestionprovider=bbr2",
-      "undo": "netsh int tcp set supplemental template=internet congestionprovider=cubic"
+      "run": "Set-SmbClientConfiguration -EnableBandwidthThrottling $false -Force",
+      "undo": "Set-SmbClientConfiguration -EnableBandwidthThrottling $true -Force"
     },
-    "revert": "netsh int tcp set supplemental template=internet congestionprovider=cubic",
+    "revert": "Set-SmbClientConfiguration -EnableBandwidthThrottling $true -Force",
     "risk": "moderate",
-    "breaks": "Not officially supported",
+    "breaks": null,
     "ram_or_perf_effect": null,
     "post_install_possible": true,
     "projects": [
-      "revios"
+      "atlas"
     ],
     "evidence": [
-      "https://github.com/meetrevision/playbook/releases/tag/23.04"
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
     ],
     "preset": "balanced",
-    "verification": "command-unverified"
-  },
-  {
-    "id": "net-hosts-adobe-block",
-    "category": "network",
-    "description": "Append marked block of Adobe domains to hosts (domain list must be supplied).",
-    "implementation": {
-      "type": "command",
-      "run": "# add BEGIN/END marked 0.0.0.0 block to hosts",
-      "undo": "# remove marked block"
-    },
-    "revert": "# remove marked block",
-    "risk": "moderate",
-    "breaks": "Adobe licensing may fail; AV flags",
-    "ram_or_perf_effect": null,
-    "post_install_possible": true,
-    "projects": [
-      "winutil"
-    ],
-    "evidence": [
-      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
-    ],
-    "preset": "balanced",
-    "verification": "list-missing"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Turns off the SMB client bandwidth throttle. This catalog entry is reference only: the engine never runs free-form commands, so it is skipped.",
+    "whoBenefits": "People who copy large files over SMB on fast LANs",
+    "tradeoff": "Higher peak load on the network from SMB transfers."
   },
   {
     "id": "ai-recall-disable",
@@ -3447,19 +3908,27 @@
       "win11debloat",
       "perf-evidence"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "not measured; no CPU/RAM/disk numbers found. Qualitative reports only (early Insider build felt slow).",
+    "explanation": "Turns off Recall, which takes periodic screenshots of your screen. The policy stops snapshots being saved and deletes ones already saved. The main win is privacy, not speed.",
+    "whoBenefits": "Anyone on a Copilot+ PC or 24H2 Pro/Enterprise who does not want a searchable screen history on disk",
+    "tradeoff": "You lose the Recall timeline. Policy needs 24H2 with KB5055627 or later. Microsoft's page is inconsistent about Recall's default on managed devices, so check the result.",
     "evidence": [
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/Regfiles/Disable_AI_Recall.reg",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
-      "https://revi.cc/docs/features"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+      "https://revi.cc/docs/features",
+      "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-windowsai",
+      "https://pcworld.com/article/2684191/"
+    ]
   },
   {
     "id": "ai-copilot-disable",
     "category": "components",
-    "description": "Disable Windows Copilot by policy, hide taskbar button, remove Copilot app.",
+    "description": "Disable Windows Copilot by policy and hide the taskbar button (registry only, fully reversible).",
     "implementation": {
       "type": "multi",
       "steps": [
@@ -3483,14 +3952,6 @@
           "name": "ShowCopilotButton",
           "valueType": "DWord",
           "value": 0
-        },
-        {
-          "type": "appx",
-          "names": [
-            "Microsoft.Copilot*",
-            "Microsoft.Windows.Copilot"
-          ],
-          "removeProvisioned": true
         }
       ]
     },
@@ -3517,15 +3978,6 @@
           "name": "ShowCopilotButton",
           "action": "restoreSnapshot",
           "ifAbsentBefore": "deleteValue"
-        },
-        {
-          "type": "appx",
-          "names": [
-            "Microsoft.Copilot*",
-            "Microsoft.Windows.Copilot"
-          ],
-          "action": "reinstall",
-          "how": "winget/Store, or Add-AppxPackage -Register saved InstallLocation manifest"
         }
       ]
     },
@@ -3540,13 +3992,83 @@
       "perf-evidence",
       "revios"
     ],
+    "preset": "safe",
+    "verification": "value-inferred",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured; Microsoft says TurnOffWindowsCopilot does not control the newer Copilot app (24H2 and later)",
+    "explanation": "Sets the old Windows Copilot policy and hides the Copilot taskbar button. Microsoft marks TurnOffWindowsCopilot as deprecated and says it does not cover the newer Copilot app, so on 24H2 and later only the taskbar button change is reliably visible. App removal is a separate, irreversible tweak (ai-copilot-app-remove).",
+    "whoBenefits": "Anyone who does not use Copilot and wants a cleaner taskbar",
+    "tradeoff": "The policy may do nothing on current builds; the taskbar button is hidden but the Copilot app stays installed.",
     "evidence": [
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/Regfiles/Disable_Copilot.reg",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
-      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1",
+      "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html",
+      "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-windowsai",
+      "https://learn.microsoft.com/en-us/windows/client-management/manage-windows-copilot",
+      "https://learn.microsoft.com/answers/a/12223056"
+    ]
+  },
+  {
+    "id": "ai-copilot-app-remove",
+    "category": "components",
+    "description": "Remove the Copilot app packages (no exact undo).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "appx",
+          "names": [
+            "Microsoft.Copilot*",
+            "Microsoft.Windows.Copilot"
+          ],
+          "removeProvisioned": true
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "appx",
+          "names": [
+            "Microsoft.Copilot*",
+            "Microsoft.Windows.Copilot"
+          ],
+          "action": "reinstall",
+          "how": "winget/Store, or Add-AppxPackage -Register saved InstallLocation manifest"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "tiny11",
+      "win11debloat",
+      "perf-evidence",
+      "revios"
     ],
-    "preset": "safe",
-    "verification": "from-notes"
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured; the app is idle unless opened",
+    "explanation": "Removes the Copilot app packages for all users and from the provisioning list. The engine skips AppX steps unless -AllowIrreversible is passed.",
+    "whoBenefits": "Anyone who never uses Copilot",
+    "tradeoff": "No exact undo: reinstall from the Microsoft Store. Updates or the Store can bring the app back.",
+    "evidence": [
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/Regfiles/Disable_Copilot.reg",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1",
+      "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html",
+      "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-windowsai",
+      "https://learn.microsoft.com/en-us/windows/client-management/manage-windows-copilot",
+      "https://learn.microsoft.com/answers/a/12223056"
+    ]
   },
   {
     "id": "ai-click-to-do-off",
@@ -3574,11 +4096,20 @@
       "win11debloat",
       "perf-evidence"
     ],
-    "evidence": [
-      "https://github.com/Raphire/Win11Debloat"
-    ],
     "preset": "safe",
-    "verification": "value-from-platform-knowledge"
+    "verification": "value-from-platform-knowledge",
+    "effectiveness": 0,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "not measured",
+    "explanation": "Disables Click to Do, the overlay that lets you act on text or images on screen. It only runs on demand, so this mainly removes an entry point and AI features you did not ask for.",
+    "whoBenefits": "People who want fewer AI hooks in the shell",
+    "tradeoff": "Insider-only per Microsoft Learn; no effect on release builds until it ships. Support depends on your build.",
+    "evidence": [
+      "https://github.com/Raphire/Win11Debloat",
+      "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-windowsai",
+      "https://www.elevenforum.com/t/enable-or-disable-click-to-do-in-windows-11.35166/latest"
+    ],
+    "policyDocumented": true
   },
   {
     "id": "comp-onedrive-uninstall",
@@ -3602,14 +4133,21 @@
       "privacy",
       "perf-evidence"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured; one process, roughly tens of MB when idle",
+    "explanation": "Removes OneDrive if you do not use it. Saves a small background process and stops the sign-in nags.",
+    "whoBenefits": "People with no OneDrive account",
+    "tradeoff": "If Desktop/Documents are backed up to OneDrive, uninstalling can strand files. Some guides advise leaving it alone.",
     "evidence": [
       "https://revi.cc/docs/features",
       "https://docs.atlasos.net/faq/install-faq/removed-features/",
       "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
-      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://www.digitnaut.com/2026/02/windows-11-debloater-ultimate-performance-guide.html"
+    ]
   },
   {
     "id": "comp-onedrive-sync-policy",
@@ -3638,12 +4176,19 @@
       "privacy",
       "perf-evidence"
     ],
+    "preset": "aggressive",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Blocks OneDrive file sync by policy. Stops sync traffic but OneDrive stays installed.",
+    "whoBenefits": "Managed or offline-only PCs",
+    "tradeoff": "Cloud backup and Files On-Demand stop working.",
     "evidence": [
       "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1",
-      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
-    ],
-    "preset": "aggressive",
-    "verification": "from-notes"
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://www.digitnaut.com/2026/02/windows-11-debloater-ultimate-performance-guide.html"
+    ]
   },
   {
     "id": "comp-teams-install-block",
@@ -3670,11 +4215,21 @@
     "projects": [
       "tiny11"
     ],
-    "evidence": [
-      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
-    ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "Teams plus Widgets about 0.5-1.0 GB on one low-end laptop (single machine). Microsoft documents the setting for setup time only.",
+    "explanation": "Stops the consumer Teams app from installing itself and starting at login. Teams can launch WebView2 processes at sign-in. Saves nothing if it is already installed.",
+    "whoBenefits": "Home users who do not use Teams, and low-RAM PCs",
+    "tradeoff": "Consumer Teams must be installed manually later. Little effect on an already-installed image; Microsoft documents no runtime policy for this on Pro.",
+    "evidence": [
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1",
+      "https://techfuelhq.com/articles/debloat-windows-11-2026/",
+      "https://www.edtittel.com/?p=3650",
+      "https://itdaily.com/news/workplace/two-standard-integrated-applications-slow-down-windows-11",
+      "https://learn.microsoft.com/en-us/troubleshoot/windows-client/application-management/managing-teams-chat-icon-windows-11"
+    ]
   },
   {
     "id": "comp-optional-features-legacy",
@@ -3700,7 +4255,13 @@
       "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Remove IE, Steps Recorder, legacy Media Player, WordPad, Math Recognizer (resolve exact names first).",
+    "whoBenefits": "Users who do not use the component",
+    "tradeoff": "None documented."
   },
   {
     "id": "comp-edge-removal-external",
@@ -3724,12 +4285,19 @@
       "winutil",
       "win11debloat"
     ],
+    "preset": "aggressive",
+    "verification": "external-tool",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Force-removes Edge. The Edge background processes are better handled by policies, and removal is fragile.",
+    "whoBenefits": "Almost nobody",
+    "tradeoff": "Unsupported, can break WebView2 apps, Widgets and Help. Win11Debloat authors also advise against it.",
     "evidence": [
       "https://docs.atlasos.net/faq/install-faq/removed-features/",
-      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
-    ],
-    "preset": "aggressive",
-    "verification": "external-tool"
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://www.digitnaut.com/2026/02/windows-11-debloater-ultimate-performance-guide.html"
+    ]
   },
   {
     "id": "comp-store-apps-disable",
@@ -3780,11 +4348,18 @@
     "projects": [
       "privacy"
     ],
-    "evidence": [
-      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
-    ],
     "preset": "aggressive",
-    "verification": "path-assumed"
+    "verification": "path-assumed",
+    "effectiveness": 0,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "not measured",
+    "explanation": "Disables the Store and its auto-downloads. Microsoft states this also stops app updates and the Store itself, a big functional cost for little traffic saved.",
+    "whoBenefits": "Locked-down kiosks",
+    "tradeoff": "Breaks the Store and app updates.",
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services#2616-feedback--diagnostics"
+    ]
   },
   {
     "id": "edge-debloat-policies",
@@ -3894,13 +4469,25 @@
       "win11debloat",
       "perf-evidence"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "Policies are documented by Microsoft but no memory figure is given; a third-party guide estimates hundreds of MB for Startup Boost while Edge is closed (unmeasured).",
+    "explanation": "Uses documented Edge policies to hide the sidebar and Copilot button, stop the shopping assistant, stop Edge pre-loading at sign-in (Startup Boost) and stop it staying alive after you close it (background mode).",
+    "whoBenefits": "Anyone with Edge installed, especially on 8 GB machines",
+    "tradeoff": "Edge opens a little slower from cold. Background sessions and push notifications from web apps stop when Edge is closed. Sidebar tools are lost.",
     "evidence": [
       "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
-      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md",
+      "https://learn.microsoft.com/deployedge/microsoft-edge-policies/startupboostenabled",
+      "https://learn.microsoft.com/deployedge/microsoft-edge-policies/backgroundmodeenabled",
+      "https://pureinfotech.com/disable-edge-startup-boost-save-ram-windows-11/",
+      "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-policies/hubssidebarenabled",
+      "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-enterprise-privacy-settings"
     ],
-    "preset": "safe",
-    "verification": "from-notes"
+    "policyDocumented": true
   },
   {
     "id": "edge-privacy-policies",
@@ -3998,7 +4585,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Edge privacy policies: no search suggestions/autofill, DNT, hide first run.",
+    "whoBenefits": "Edge users with specific preferences",
+    "tradeoff": "None documented."
   },
   {
     "id": "edge-password-manager-off",
@@ -4029,7 +4622,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "aggressive",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable Edge password manager.",
+    "whoBenefits": "Edge users with specific preferences",
+    "tradeoff": "None documented."
   },
   {
     "id": "edge-smartscreen-off",
@@ -4062,7 +4661,13 @@
       "https://github.com/meetrevision/packages/blob/main/defender-removal-amd64.yaml"
     ],
     "preset": "never-default",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable Edge SmartScreen.",
+    "whoBenefits": "Edge users with specific preferences",
+    "tradeoff": "None documented."
   },
   {
     "id": "appx-consumer-bloat",
@@ -4148,6 +4753,14 @@
       "privacy",
       "perf-evidence"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Removes promotional and consumer apps from the machine and the provisioning list so they do not come back for new users. Mostly frees disk space and clutter, not speed.",
+    "whoBenefits": "Fresh installs and shared machines",
+    "tradeoff": "New Outlook is documented as impossible to block from installing on builds after 23H2, so it may return; use provisioned-package removal.",
     "evidence": [
       "https://revi.cc/docs/features",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/appx.yml",
@@ -4155,10 +4768,10 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
       "https://github.com/raphire/Win11Debloat/wiki/App-Removal",
       "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html",
-      "https://thefilibusterblog.com/my-experience-debloating-windows-11-3-unexpected-drawbacks-revealed/"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://thefilibusterblog.com/my-experience-debloating-windows-11-3-unexpected-drawbacks-revealed/",
+      "https://learn.microsoft.com/en-us/microsoft-365-apps/outlook/get-started/control-install",
+      "https://learn.microsoft.com/en-us/windows/configuration/policy-based-inbox-app-removal/policy-based-inbox-app-removal"
+    ]
   },
   {
     "id": "appx-widgets-remove",
@@ -4215,13 +4828,23 @@
       "atlas",
       "win11debloat"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 2,
+    "evidenceQuality": "weak",
+    "measuredEffect": "Widgets plus Teams about 0.5-1.0 GB on one low-end laptop; a controlled debloat test saved at most 100-200 MB overall. No controlled test for Widgets alone.",
+    "explanation": "Deletes the Widgets packages. The same result is available with an official policy that can be undone, and updates may bring the packages back.",
+    "whoBenefits": "Users who never open Widgets",
+    "tradeoff": "Harder to undo than the policy, and may be reinstalled by updates. Do not remove the WebView2 runtime. Prefer the policy tweak.",
     "evidence": [
       "https://revi.cc/docs/features",
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
-      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://learn.microsoft.com/windows/client-management/mdm/policy-csp-newsandinterests",
+      "https://www.edtittel.com/?p=3650",
+      "https://itdaily.com/news/workplace/two-standard-integrated-applications-slow-down-windows-11",
+      "https://ngxptech.com/optimize-windows-11-win11debloat-guide-2026/"
+    ]
   },
   {
     "id": "appx-xbox-gaming",
@@ -4263,12 +4886,22 @@
       "atlas",
       "perf-evidence"
     ],
+    "preset": "aggressive",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "PCGH (May 2025) standard vs Nano 11 debloat showed no gaming change; no benchmark shows a gain from removing Xbox apps. Background area rated 1, gaming area 0.",
+    "explanation": "Removes Xbox apps and services. The savings are small and no benchmark shows a gain; removal can break Game Pass, Store games and Xbox sign-in.",
+    "whoBenefits": "PCs that never play Store or Game Pass games and want a cleaner app list",
+    "tradeoff": "Xbox Identity and Gaming Services are needed by many games. The Win11Debloat wiki recommends a repair tool if you need them back.",
     "evidence": [
       "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
-      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/appx.yml"
-    ],
-    "preset": "aggressive",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/appx.yml",
+      "https://github.com/Raphire/Win11Debloat/wiki/Reverting-Changes",
+      "https://learn.microsoft.com/en-us/answers/a/7013176",
+      "https://forum.level1techs.com/t/i-broke-windows-10-by-running-a-powershell-script/151100",
+      "https://www.pcgameshardware.de/Windows-Software-277633/News/Standard-gegen-Nano-Debloat-Gaming-Performance-1472429/"
+    ]
   },
   {
     "id": "appx-useful-tools-optional",
@@ -4313,12 +4946,19 @@
       "tiny11",
       "winutil"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Removing Paint and similar utilities frees a little disk space only. If your reason is Paint's AI, the Paint policies are a safer way to switch the AI off while keeping the app.",
+    "whoBenefits": "Nobody gains speed from this; only people who want the tools gone",
+    "tradeoff": "You lose handy tools. Prefer the Paint AI policies instead.",
     "evidence": [
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/appx.yml",
-      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
+      "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-windowsai"
+    ]
   },
   {
     "id": "appx-oem-bloat",
@@ -4342,7 +4982,13 @@
       "https://github.com/raphire/Win11Debloat/wiki/App-Removal"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Remove OEM packages (HP, Lenovo, Dell).",
+    "whoBenefits": "Users who want a cleaner app list",
+    "tradeoff": "OEM driver/firmware utilities"
   },
   {
     "id": "appx-crossdevice-yourphone",
@@ -4375,12 +5021,21 @@
       "tiny11",
       "win11debloat"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Removes Phone Link. The app only runs when used or paired, so little is saved. Microsoft documents no policy for this, so removal is the only route.",
+    "whoBenefits": "Users who do not pair a phone",
+    "tradeoff": "Lose Phone Link, notification mirroring and file transfer to the phone. Reinstallable from the Store.",
     "evidence": [
       "https://revi.cc/docs/features",
-      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/appx.yml"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/appx.yml",
+      "https://blog.kartones.net/post/disabling-unneeded-windows-11-services/index.html.md",
+      "https://learn.microsoft.com/en-us/windows/configuration/start/policy-settings",
+      "https://github.com/Raphire/Win11Debloat"
+    ]
   },
   {
     "id": "ui-classic-context-menu",
@@ -4407,17 +5062,23 @@
       "winutil",
       "win11debloat"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Brings back the full Windows 10 right-click menu so you do not have to click Show more options. Saves a click; some people find it opens faster, but there is no measurement.",
+    "whoBenefits": "Power users who use right-click actions often",
+    "tradeoff": "Overrides the new compact menu, and a future update may change it. Needs an Explorer restart.",
     "evidence": [
       "https://revi.cc/docs/features",
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+    ]
   },
   {
     "id": "ui-dark-mode-transparency",
     "category": "ui-shell",
-    "description": "Dark mode, transparency off.",
+    "description": "Dark mode, transparency off (cosmetic).",
     "implementation": {
       "type": "multi",
       "steps": [
@@ -4478,12 +5139,19 @@
       "revios",
       "win11debloat"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "weak",
+    "measuredEffect": "DWM composition adds roughly one frame of latency (author's own estimate); the original 8 ms vs 17 ms figures were largely retracted in a 2020 update",
+    "explanation": "Switches Windows and apps to the dark theme and turns off transparency effects. Cosmetic: the claimed latency benefit was largely retracted by its author, so no speed gain is claimed.",
+    "whoBenefits": "Low-end or integrated GPU systems, or people who prefer the look",
+    "tradeoff": "Loses the translucent look of Start, the taskbar and Settings; changes the look of every app that follows the system theme.",
     "evidence": [
       "https://revi.cc/docs/features",
-      "https://github.com/Raphire/Win11Debloat"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+      "https://github.com/Raphire/Win11Debloat",
+      "https://lofibucket.com/articles/dwm_latency.html"
+    ]
   },
   {
     "id": "ui-end-task-taskbar",
@@ -4511,12 +5179,18 @@
       "winutil",
       "win11debloat"
     ],
+    "preset": "safe",
+    "verification": "path-from-memory",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Adds an End task option to the taskbar right-click menu so you can close a frozen app quickly. Does not speed anything up but makes recovery from hangs faster.",
+    "whoBenefits": "Anyone who often deals with frozen apps",
+    "tradeoff": "A quick way to kill an app can discard unsaved work.",
     "evidence": [
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
       "https://github.com/Raphire/Win11Debloat"
-    ],
-    "preset": "safe",
-    "verification": "path-from-memory"
+    ]
   },
   {
     "id": "ui-sticky-keys-off",
@@ -4544,12 +5218,18 @@
       "winutil",
       "perf-evidence"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Stops the Sticky Keys prompt when you tap Shift five times. A pure annoyance fix, useful for gamers.",
+    "whoBenefits": "Gamers and fast typists",
+    "tradeoff": "Loses the shortcut for people who rely on Sticky Keys for accessibility.",
     "evidence": [
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+    ]
   },
   {
     "id": "ui-explorer-show-extensions",
@@ -4577,12 +5257,18 @@
       "winutil",
       "win11debloat"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Shows file extensions like .exe and .pdf. A safety and clarity tweak, not a speed one; helps spot disguised files.",
+    "whoBenefits": "Everyone, especially for spotting fake file types",
+    "tradeoff": "None meaningful.",
     "evidence": [
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
       "https://github.com/Raphire/Win11Debloat"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
+    ]
   },
   {
     "id": "ui-qol-widgets-chat-policy",
@@ -4649,44 +5335,24 @@
       "privacy",
       "revios"
     ],
+    "preset": "safe",
+    "verification": "from-notes",
+    "effectiveness": 2,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "One author's laptop: roughly 0.5-1.0 GB extra memory with default Teams and Widgets. Controlled debloat test: at most 100-200 MB saved overall. Conflict noted; Microsoft gives no figure.",
+    "explanation": "Turns off Widgets and the Chat icon with Microsoft's supported policy. Widgets stops running its background processes and news feed. A clean, reversible, supported way to do it.",
+    "whoBenefits": "Low-RAM PCs (under 8 GB) and anyone who does not use Widgets",
+    "tradeoff": "No weather or news panel. The Chat icon policy is Enterprise/Education only. The Windows Feeds EnableFeeds value is Windows 10 only; the Dsh AllowNewsAndInterests part does the work.",
     "evidence": [
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
-      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
-    ],
-    "preset": "safe",
-    "verification": "from-notes"
-  },
-  {
-    "id": "ui-start-clear-pins-policy",
-    "category": "ui-shell",
-    "description": "Empty Start pinned list.",
-    "implementation": {
-      "type": "registry",
-      "path": "HKLM:\\SOFTWARE\\Microsoft\\PolicyManager\\current\\device\\Start",
-      "name": "ConfigureStartPins",
-      "valueType": "String",
-      "value": "{\"pinnedList\":[{}]}"
-    },
-    "revert": {
-      "type": "registry",
-      "path": "HKLM:\\SOFTWARE\\Microsoft\\PolicyManager\\current\\device\\Start",
-      "name": "ConfigureStartPins",
-      "action": "restoreSnapshot",
-      "ifAbsentBefore": "deleteValue"
-    },
-    "risk": "safe",
-    "breaks": null,
-    "ram_or_perf_effect": null,
-    "post_install_possible": true,
-    "projects": [
-      "tiny11",
-      "revios"
-    ],
-    "evidence": [
-      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1"
-    ],
-    "preset": "safe",
-    "verification": "path-unconfirmed"
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://learn.microsoft.com/windows/client-management/mdm/policy-csp-newsandinterests",
+      "https://learn.microsoft.com/windows/whats-new/windows-11-overview",
+      "https://learn.microsoft.com/windows/client-management/mdm/policy-csp-feeds#feeds-policies",
+      "https://www.edtittel.com/?p=3650",
+      "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html",
+      "https://learn.microsoft.com/en-us/troubleshoot/windows-client/application-management/managing-teams-chat-icon-windows-11"
+    ]
   },
   {
     "id": "ui-paint3d-context-removal",
@@ -4709,7 +5375,13 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/qol/explorer/remove-context-menus/paint-3D.yml"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Removes the Edit with Paint 3D entry from the right-click menu of image files.",
+    "whoBenefits": "Users who want a tidier interface",
+    "tradeoff": "The menu entry disappears (the Paint 3D app stays installed) and an update may bring it back. The engine currently skips this entry because it is a command step."
   },
   {
     "id": "wu-defer-feature-updates",
@@ -4753,8 +5425,8 @@
         }
       ]
     },
-    "risk": "safe",
-    "breaks": null,
+    "risk": "moderate",
+    "breaks": "Update-ring settings from Intune or Group Policy can be overridden or can override this.",
     "ram_or_perf_effect": null,
     "post_install_possible": true,
     "projects": [
@@ -4766,8 +5438,15 @@
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md",
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
     ],
-    "preset": "safe",
-    "verification": "from-notes"
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Delays feature updates (the yearly Windows version upgrades) by 30 days using the Windows Update policy keys. Monthly security and quality updates are not delayed.",
+    "whoBenefits": "Users who need control over update timing",
+    "tradeoff": "Conflicts with Intune/WUfB update rings or Autopatch; feature updates arrive 30 days late.",
+    "managedDeviceImpact": "Conflicts with Intune update rings / Windows Autopatch; the engine already skips the updates category on managed devices."
   },
   {
     "id": "wu-no-auto-reboot-logged-on",
@@ -4801,7 +5480,13 @@
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "No forced reboot while a user is signed in.",
+    "whoBenefits": "Users who need control over update timing",
+    "tradeoff": "Patches stay pending until manual reboot"
   },
   {
     "id": "wu-exclude-driver-updates",
@@ -4832,7 +5517,13 @@
       "https://revi.cc/docs/features"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Block drivers from WU quality updates.",
+    "whoBenefits": "Users who need control over update timing",
+    "tradeoff": "Missed vendor drivers"
   },
   {
     "id": "wu-store-autoupdate-off",
@@ -4885,12 +5576,19 @@
       "atlas",
       "privacy"
     ],
+    "preset": "balanced",
+    "verification": "from-notes",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Stops the Store updating apps in the background. Saves some network and disk activity.",
+    "whoBenefits": "Metered connections",
+    "tradeoff": "Apps get outdated and miss security fixes unless you update manually.",
     "evidence": [
       "https://revi.cc/docs/features",
-      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
-    ],
-    "preset": "balanced",
-    "verification": "from-notes"
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://github.com/Raphire/Win11Debloat/wiki/Reverting-Changes"
+    ]
   },
   {
     "id": "wu-disable-auto-updates-policy",
@@ -4928,7 +5626,13 @@
       "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
     ],
     "preset": "never-default",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "NoAutoUpdate policy / pause updates (opt-in only).",
+    "whoBenefits": "Users who need control over update timing",
+    "tradeoff": "No security patches until reverted; recovery issues reported after Atlas"
   },
   {
     "id": "wu-wuauserv-disable",
@@ -4982,7 +5686,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
     ],
     "preset": "never-default",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable wuauserv/UsoSvc (never WaaSMedicSvc).",
+    "whoBenefits": "Users who need control over update timing",
+    "tradeoff": "No updates; leaving WaaSMedicSvc disabled breaks Store/AppX"
   },
   {
     "id": "sec-defender-disable-policy",
@@ -5042,7 +5752,13 @@
       "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
     ],
     "preset": "never-default",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "DisableAntiSpyware policy, wscsvc Start=4 (Tamper Protection must be off first; do not bypass).",
+    "whoBenefits": "Only users with a specific need; not a general recommendation",
+    "tradeoff": "No real-time protection; Defender re-enables on updates"
   },
   {
     "id": "sec-smartscreen-off",
@@ -5100,7 +5816,13 @@
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
     ],
     "preset": "never-default",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable SmartScreen (system, Explorer, AppHost, Edge legacy).",
+    "whoBenefits": "Only users with a specific need; not a general recommendation",
+    "tradeoff": "None documented."
   },
   {
     "id": "sec-smart-app-control-off",
@@ -5127,7 +5849,13 @@
       "https://docs.atlasos.net/faq/install-faq/removed-features/"
     ],
     "preset": "never-default",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Turn Smart App Control off. IRREVERSIBLE without reset.",
+    "whoBenefits": "Only users with a specific need; not a general recommendation",
+    "tradeoff": "None documented."
   },
   {
     "id": "sec-vbs-hvci-off",
@@ -5194,13 +5922,21 @@
       "atlas",
       "perf-evidence"
     ],
+    "preset": "never-default",
+    "verification": "from-notes",
+    "effectiveness": 3,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "ComputerBase (Nov 2023, Win11 22H2): HVCI on/off can mean double-digit differences in CPU-limited scenes. Tom's Hardware (secondhand): about 5-7% average, up to 15% 1% lows with VBS on in 12th-gen tests; worst cases about 30% on older CPUs without MBEC.",
+    "explanation": "Memory Integrity (HVCI) runs a security layer under Windows using virtualization. It can cost frame rate in CPU-limited games, mostly on older processors. It has a real measured effect, but switches off a significant protection.",
+    "whoBenefits": "Owners of older CPUs or high-refresh CPU-bound esports setups who measured a gain on their own games",
+    "tradeoff": "Removes kernel code-integrity and driver protections. Windows may turn it back on. Test your own games and keep it on for a general-use PC.",
     "evidence": [
       "https://learn.microsoft.com/en-us/windows/security/hardware-security/enable-virtualization-based-protection-of-code-integrity",
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/scripts/script-core-isolation.yml",
-      "https://revi.cc/docs/features"
-    ],
-    "preset": "never-default",
-    "verification": "from-notes"
+      "https://revi.cc/docs/features",
+      "https://www.computerbase.de/2023-11/cpu-gaming-benchmark-2023-amd-ryzen-intel-core/",
+      "https://www.tomshardware.com/news/windows-11-gaming-benchmarks-performance-vbs-hvci-security/"
+    ]
   },
   {
     "id": "sec-cpu-mitigations-off",
@@ -5251,11 +5987,17 @@
     "projects": [
       "atlas"
     ],
+    "preset": "never-default",
+    "verification": "values-inferred",
+    "effectiveness": 1,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Turns off CPU exploit mitigations such as those for Spectre-class flaws. No gaming benchmark was found, and modern CPUs have hardware fixes, so the gain is small.",
+    "whoBenefits": "Almost no one; only very old CPUs might see a gain",
+    "tradeoff": "Exposes the system to known CPU side-channel attacks. Not recommended.",
     "evidence": [
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/scripts/script-mitigations.yml"
-    ],
-    "preset": "never-default",
-    "verification": "values-inferred"
+    ]
   },
   {
     "id": "sec-uac-secure-desktop-off",
@@ -5286,7 +6028,13 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
     ],
     "preset": "never-default",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "No secure-desktop dimming for UAC prompts.",
+    "whoBenefits": "Only users with a specific need; not a general recommendation",
+    "tradeoff": "None documented."
   },
   {
     "id": "sec-bitlocker-prevent-auto-encryption",
@@ -5320,7 +6068,13 @@
       "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
     ],
     "preset": "never-default",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Prevent automatic device encryption (never decrypt existing drives).",
+    "whoBenefits": "Only users with a specific need; not a general recommendation",
+    "tradeoff": "No silent encryption or key escrow"
   },
   {
     "id": "sec-bitlocker-decrypt",
@@ -5343,7 +6097,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
     ],
     "preset": "never-default",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Decrypt system drive.",
+    "whoBenefits": "Only users with a specific need; not a general recommendation",
+    "tradeoff": "None documented."
   },
   {
     "id": "sec-root-cert-autoupdate-off",
@@ -5370,11 +6130,17 @@
     "projects": [
       "privacy"
     ],
+    "preset": "never-default",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "not measured",
+    "explanation": "Stops automatic root certificate updates. Microsoft says this should not be disabled and the savings are tiny.",
+    "whoBenefits": "Nobody in normal use",
+    "tradeoff": "Reduces security and can cause certificate errors.",
     "evidence": [
       "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
-    ],
-    "preset": "never-default",
-    "verification": "from-notes"
+    ]
   },
   {
     "id": "sec-wpbt-disable",
@@ -5405,7 +6171,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Disable Windows Platform Binary Table execution.",
+    "whoBenefits": "Only users with a specific need; not a general recommendation",
+    "tradeoff": "OEM firmware-injected tools stop auto-running"
   },
   {
     "id": "sec-remote-assistance-off",
@@ -5436,7 +6208,13 @@
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
     ],
     "preset": "safe",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Turns off Windows Remote Assistance invitations (msra).",
+    "whoBenefits": "Only users with a specific need; not a general recommendation",
+    "tradeoff": "Nobody can offer or request help through Remote Assistance. Quick Assist and Remote Desktop are separate and unaffected; helpdesk tools that rely on Remote Assistance stop working."
   },
   {
     "id": "sec-msaccount-block",
@@ -5468,7 +6246,13 @@
       "https://docs.atlasos.net/faq/install-faq/removed-features/"
     ],
     "preset": "aggressive",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Block Microsoft account sign-in.",
+    "whoBenefits": "Only users with a specific need; not a general recommendation",
+    "tradeoff": "Store, Xbox, OneDrive, anything needing MSA"
   },
   {
     "id": "sec-linked-connections",
@@ -5488,8 +6272,8 @@
       "action": "restoreSnapshot",
       "ifAbsentBefore": "deleteValue"
     },
-    "risk": "moderate",
-    "breaks": null,
+    "risk": "reduces-security",
+    "breaks": "Weaker UAC isolation.",
     "ram_or_perf_effect": null,
     "post_install_possible": true,
     "projects": [
@@ -5498,21 +6282,27 @@
     "evidence": [
       "https://revi.cc/docs/features"
     ],
-    "preset": "balanced",
-    "verification": "from-notes"
+    "preset": "never-default",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Makes mapped network drives visible to both elevated and non-elevated processes by linking the two access tokens. That weakens the isolation UAC provides.",
+    "whoBenefits": "Admins who need mapped drives to show up in elevated prompts",
+    "tradeoff": "Weakens UAC token isolation: a non-elevated program can see what an elevated one maps."
   },
   {
     "id": "sec-powershell-remotesigned",
     "category": "security",
-    "description": "Execution policy RemoteSigned (LocalMachine).",
+    "description": "Execution policy RemoteSigned (LocalMachine). Relaxes the Windows client default.",
     "implementation": {
       "type": "command",
       "run": "Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force",
       "undo": "Set-ExecutionPolicy <recorded> -Scope LocalMachine"
     },
     "revert": "Set-ExecutionPolicy <recorded> -Scope LocalMachine",
-    "risk": "safe",
-    "breaks": null,
+    "risk": "reduces-security",
+    "breaks": "Weaker defence against malicious local scripts.",
     "ram_or_perf_effect": null,
     "post_install_possible": true,
     "projects": [
@@ -5521,8 +6311,15 @@
     "evidence": [
       "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/custom.yml"
     ],
-    "preset": "safe",
-    "verification": "from-notes"
+    "preset": "never-default",
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Changes the PowerShell execution policy for the whole machine to RemoteSigned, so unsigned local scripts can run. The Windows 11 client default is Restricted. This is a convenience for script authors, not a performance tweak.",
+    "whoBenefits": "Developers and admins who run their own unsigned scripts; not a general recommendation",
+    "tradeoff": "Weakens the script execution policy: any local unsigned script can run. On managed devices policy from Intune, AppLocker or WDAC normally controls this.",
+    "managedDeviceImpact": "Conflicts with execution-policy settings pushed by Intune or Group Policy."
   },
   {
     "id": "misc-realtime-is-universal",
@@ -5532,7 +6329,7 @@
       "type": "registry",
       "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation",
       "name": "RealTimeIsUniversal",
-      "valueType": "QWord",
+      "valueType": "DWord",
       "value": 1
     },
     "revert": {
@@ -5555,7 +6352,13 @@
       "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Hardware clock is UTC (dual boot only).",
+    "whoBenefits": "Users with a specific need",
+    "tradeoff": "Clock offset on Windows-only systems"
   },
   {
     "id": "misc-sudo-inline",
@@ -5578,6 +6381,605 @@
       "https://revi.cc/docs/features"
     ],
     "preset": "balanced",
-    "verification": "from-notes"
+    "verification": "from-notes",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Enable inline sudo (24H2+).",
+    "whoBenefits": "Users with a specific need",
+    "tradeoff": "None documented."
+  },
+  {
+    "id": "svc-sysmain-disable",
+    "category": "services",
+    "description": "Disable SysMain (Superfetch) service.",
+    "implementation": {
+      "type": "service",
+      "name": "SysMain",
+      "startType": "Disabled"
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://www.elevenforum.com/t/does-disabling-sysmain-superfetch-make-any-sense-with-an-nvme-system-drive.6625",
+      "https://www.askwoody.com/forums/topic/disable-superfetch-if-using-an-ssd-as-system-disk",
+      "https://www.xda-developers.com/i-disabled-these-5-windows-11-background-services-and-saw-zero-downsides/",
+      "https://geekswipe.net/?p=157"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured; no difference reported on NVMe",
+    "explanation": "SysMain pre-loads frequently used apps into memory. It was designed for slow hard drives and does little on SSD or NVMe drives. Users report no difference either way. Expect no measurable gain on an SSD.",
+    "whoBenefits": "SSD/NVMe users who want fewer background disk reads; not HDD users",
+    "tradeoff": "On a hard drive, app launches and boot can get slower."
+  },
+  {
+    "id": "svc-wsearch-manual",
+    "category": "services",
+    "description": "Set Windows Search (WSearch) to Manual instead of Automatic.",
+    "implementation": {
+      "type": "service",
+      "name": "WSearch",
+      "startType": "Manual"
+    },
+    "revert": "snapshot",
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://www.makeuseof.com/disable-windows-11-service-free-1gb-ram/",
+      "https://learn.microsoft.com/troubleshoot/windows-client/shell-experience/windows-search-performance-issues",
+      "https://learn.microsoft.com/answers/a/12253077",
+      "https://learn.microsoft.com/answers/a/12407209"
+    ],
+    "preset": "balanced",
+    "verification": "new-unverified",
+    "effectiveness": 2,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "one reviewer: nearly 1 GB on a 16 GB laptop (single machine, unrepeated); Microsoft: normal is a few hundred MB",
+    "explanation": "The Windows Search indexer can use a lot of memory when its index is large or corrupted; one reviewer reported over 1 GB freed, though Microsoft says a few hundred MB is normal. Microsoft favours rebuilding the index over disabling. Manual start is gentler than Disabled.",
+    "whoBenefits": "People with a huge or broken index who use a separate search tool; first try rebuilding the index",
+    "tradeoff": "Slower Start/Explorer search, Outlook search may degrade, and server-side search for SMB shares depends on it."
+  },
+  {
+    "id": "svc-spooler-disable",
+    "category": "services",
+    "description": "Disable the Print Spooler service on PCs that never print.",
+    "implementation": {
+      "type": "service",
+      "name": "Spooler",
+      "startType": "Disabled"
+    },
+    "revert": "snapshot",
+    "risk": "breaks-features",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/security-updates/securitybulletins/2009/ms09-022",
+      "https://learn.microsoft.com/defender-for-identity/security-posture-assessments/identity-infrastructure#disable-print-spooler-service-on-domain-controllers",
+      "https://learn.microsoft.com/troubleshoot/windows-server/printing/print-spooler-service-not-running"
+    ],
+    "preset": "aggressive",
+    "verification": "new-unverified",
+    "effectiveness": 0,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured for RAM; security benefit documented by Microsoft",
+    "explanation": "Mainly a security hardening step: the Print Spooler has been a repeated attack target, and Microsoft recommends disabling it on domain controllers and admin systems. It saves almost no memory. Do not use if you print, including to PDF printers that rely on the spooler.",
+    "whoBenefits": "Non-printing PCs, domain controllers, admin workstations",
+    "tradeoff": "No local or remote printing; check dependencies first.",
+    "policyDocumented": true
+  },
+  {
+    "id": "svc-remoteregistry-disable",
+    "category": "services",
+    "description": "Keep Remote Registry disabled.",
+    "implementation": {
+      "type": "service",
+      "name": "RemoteRegistry",
+      "startType": "Disabled"
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": "Remote management, inventory and monitoring tools that read the registry remotely (for example some ConfigMgr and RMM tools).",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/fr-fr/previous-versions/windows/it-pro/windows-10/security/threat-protection/security-policy-settings/network-access-remotely-accessible-registry-paths",
+      "https://www.tenable.com/audits/CIS_Microsoft_Windows_11_Stand-alone_v1.0.0_L2_Bitlocker"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 0,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "none; hardening only",
+    "explanation": "Remote Registry lets other machines read your registry over the network. It is a security hardening item (it appears in CIS benchmarks), not a performance one, and it is disabled by default on most client installs. Remote management tools such as Configuration Manager need it.",
+    "whoBenefits": "Home PCs and hardened machines; not managed fleets",
+    "tradeoff": "Breaks remote management tools that use the remote registry.",
+    "managedDeviceImpact": "Remote management or inventory tools used by your IT team may stop working."
+  },
+  {
+    "id": "svc-mapsbroker-disable",
+    "category": "services",
+    "description": "Disable Downloaded Maps Manager (MapsBroker).",
+    "implementation": {
+      "type": "service",
+      "name": "MapsBroker",
+      "startType": "Disabled"
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://blog.kartones.net/post/disabling-unneeded-windows-11-services/index.html.md",
+      "https://www.tenable.com/audits/CIS_Microsoft_Windows_11_Stand-alone_v1.0.0_L2_Bitlocker"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 0,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Handles offline map downloads for the Maps app. It is idle unless you use offline maps, so there is no real gain, but it is listed in CIS hardening.",
+    "whoBenefits": "Hardening-minded users",
+    "tradeoff": "Offline Maps stop updating."
+  },
+  {
+    "id": "lat-global-timer-resolution-requests",
+    "category": "performance",
+    "description": "Restore system-wide timer resolution requests (GlobalTimerResolutionRequests=1) so one app's high-resolution timer request applies to all processes, as before Windows 10 2004.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel",
+      "name": "GlobalTimerResolutionRequests",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": "snapshot",
+    "risk": "moderate",
+    "breaks": "Battery life on laptops; slightly higher idle power on desktops.",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/windows/win32/api/timeapi/nf-timeapi-timebeginperiod",
+      "https://www.wagnardsoft.com/forums/viewtopic.php?p=12471",
+      "https://github.com/valleyofdoom/TimerResolution",
+      "https://bitsum.com/apps/process-lasso/docs/rules/timer-resolution/",
+      "https://learn.microsoft.com/windows/win32/api/strmif/nf-strmif-ireferenceclocktimercontrol-setdefaulttimerresolution"
+    ],
+    "preset": "balanced",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured; tools such as MeasureSleep show Sleep() precision changes, but no input-lag or frame-time benefit was documented",
+    "explanation": "Since Windows 10 2004 only the program that asks for a faster timer gets it; other programs stay at about 15.6 ms. This value makes requests system-wide again. Microsoft says higher resolution can reduce overall performance, use more power and block CPU power saving. No instrumented before/after latency numbers were found.",
+    "whoBenefits": "Users who run a timer-sensitive app and depend on other processes seeing the fast timer; mostly audio or legacy-software cases",
+    "tradeoff": "More CPU wakeups, higher idle power and battery drain, and possibly lower throughput."
+  },
+  {
+    "id": "gaming-gamedvr-appcapture-user-off",
+    "category": "performance",
+    "description": "Turn off per-user Game DVR app capture and background (historical) recording.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+          "name": "AppCaptureEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+          "name": "HistoricalCaptureEnabled",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://www.anoopcnair.com/?p=351291",
+      "https://www.laptopmedia.com/news/game-dvr-fps-performance-impact-while-recording-at-different-settings/"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "Laptopmedia: about 0.3 FPS difference, within noise (GTA V, MX150).",
+    "explanation": "Switches off Game Bar app capture and the always-on background recording buffer for your account only. Measured cost of recording is about 0.3 FPS on a weak laptop, so expect a small gain mainly on low-end PCs.",
+    "whoBenefits": "Budget or older PCs that never use Game Bar clips",
+    "tradeoff": "No Win+Alt+G background clips; Game Bar recording features stop working."
+  },
+  {
+    "id": "priv-spotlight-features-off",
+    "category": "ui-shell",
+    "description": "Turn off all Windows Spotlight features (lock screen Spotlight, tips and suggestions) for the current user by policy.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKCU:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+      "name": "DisableWindowsSpotlightFeatures",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services#how-to-configure-each-setting",
+      "https://learn.microsoft.com/intune/device-configuration/templates/ref-device-restrictions-windows#windows-spotlight",
+      "https://learn.microsoft.com/windows/client-management/mdm/policy-csp-experience#configurewindowsspotlightonlockscreen",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services#25-personalized-experiences",
+      "https://learn.microsoft.com/en-us/answers/questions/1459108/how-to-fix-windows-11-spotlight-not-downloading-lo"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "not measured",
+    "explanation": "Microsoft documents this policy as the switch that turns off every Windows Spotlight feature, including lock-screen ads and tips, for a user. It is about a quieter, ad-free screen and a bit less network traffic, not speed.",
+    "whoBenefits": "Anyone who wants the lock screen and Settings free of promotions and rotating suggestions; metered links",
+    "tradeoff": "The lock screen falls back to a picture or slideshow. Microsoft's table shows the matching policy as not supported on Pro, and it does not cover per-user Settings toggles, so the effect may be limited there."
+  },
+  {
+    "id": "net-do-monthly-upload-cap",
+    "category": "network",
+    "description": "Cap Delivery Optimization monthly upload to 5 GB instead of the 20 GB default, keeping peering but bounding upstream use.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+      "name": "DOMonthlyUploadDataCap",
+      "valueType": "DWord",
+      "value": 5
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/windows/deployment/do/waas-delivery-optimization-reference",
+      "https://learn.microsoft.com/en-us/windows/deployment/do/waas-delivery-optimization-faq"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "No measurement found (the 20 GB figure is Microsoft's default cap, not a measured effect).",
+    "explanation": "Limits how much your PC may upload to other PCs per month (5 GB instead of the 20 GB default). Redundant if net-delivery-optimization-off is applied: with DODownloadMode=0 there is no peering, so there is nothing to cap.",
+    "whoBenefits": "Home users on capped or slow upstream connections.",
+    "tradeoff": "Peers get fewer shares from your PC once the cap is reached. Pointless if peer-to-peer is already off.",
+    "redundantWith": "net-delivery-optimization-off"
+  },
+  {
+    "id": "net-do-background-bandwidth-pct",
+    "category": "network",
+    "description": "Limit Delivery Optimization background downloads to 25 percent of measured bandwidth (default is dynamic, up to 45 percent).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+      "name": "DOPercentageMaxBackgroundBandwidth",
+      "valueType": "DWord",
+      "value": 25
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/deployment/do/waas-delivery-optimization-faq",
+      "https://learn.microsoft.com/windows/deployment/do/waas-delivery-optimization-reference"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Keeps background update downloads from using most of your connection. Microsoft says throttling is the supported way to reduce DO network load, as turning DO off does not stop downloads.",
+    "whoBenefits": "Users who notice lag during background updates.",
+    "tradeoff": "Background updates download more slowly."
+  },
+  {
+    "id": "net-maps-untriggered-traffic-off",
+    "category": "network",
+    "description": "Stop the Maps settings page from generating untriggered network traffic.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Maps",
+      "name": "AllowUntriggeredNetworkTrafficOnSettingsPage",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services#15-offline-maps"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "weak",
+    "measuredEffect": "not measured",
+    "explanation": "Documented by Microsoft as the companion to the automatic map update policy. It prevents map traffic when you merely open the Settings page.",
+    "whoBenefits": "Privacy-minded users.",
+    "tradeoff": "None meaningful; Maps keeps working."
+  },
+  {
+    "id": "start-hide-recommended-section",
+    "category": "ui-shell",
+    "description": "Hide the Recommended section of the Start menu (recent files and suggested items) using the documented Start policy.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer",
+          "name": "HideRecommendedSection",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer",
+          "name": "HideRecommendedPersonalizedSites",
+          "valueType": "DWord",
+          "value": 1
+        }
+      ]
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-start",
+      "https://learn.microsoft.com/en-us/windows/configuration/start/policy-settings",
+      "https://windowslatest.com/2025/06/15/remove-turn-off-windows-11-start-menu-recommended-section-version-24h2"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Removes the Recommended area of Start, where Windows shows recent files and suggested apps and sites. Documented by Microsoft as a policy from Windows 11 22H2, so it is the official route rather than a hack. A cleaner, less ad-prone Start, not a speed gain.",
+    "whoBenefits": "Anyone who wants a minimal Start menu.",
+    "tradeoff": "You lose quick access to recently opened files from Start. Reports differ on edition support; Microsoft's CSP table lists Pro.",
+    "policyDocumented": true
+  },
+  {
+    "id": "paint-ai-off",
+    "category": "components",
+    "description": "Disable Paint AI features (Cocreator, Generative Fill, Image Creator) by device policy.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Paint",
+          "name": "DisableCocreator",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Paint",
+          "name": "DisableGenerativeFill",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Paint",
+          "name": "DisableImageCreator",
+          "valueType": "DWord",
+          "value": 1
+        }
+      ]
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-windowsai"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Switches off the AI image tools inside Paint while keeping Paint itself. These policies live in a separate Paint key, not the WindowsAI key.",
+    "whoBenefits": "Users who want Paint without cloud AI features.",
+    "tradeoff": "You lose Cocreator, Generative Fill and Image Creator. Needs a recent Paint and Windows update.",
+    "policyDocumented": true
+  },
+  {
+    "id": "notepad-ai-off",
+    "category": "components",
+    "description": "Block AI features (Rewrite, summarise) in Notepad by policy.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\WindowsNotepad",
+      "name": "DisableAIFeatures",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/client-management/manage-notepad"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "not measured",
+    "explanation": "Notepad's AI text tools are on by default on managed devices. This policy blocks them. Microsoft's page names the policy DisableAIFeaturesInNotepad but gives the registry value as DisableAIFeatures, so test on one machine first.",
+    "whoBenefits": "People who want Notepad as a plain editor.",
+    "tradeoff": "You lose Rewrite and related AI helpers. The value name is inconsistent in the docs; verify the AI buttons disappear. Needs Notepad 11.2503.16.0 or later.",
+    "policyDocumented": true
+  },
+  {
+    "id": "widgets-lockscreen-off",
+    "category": "ui-shell",
+    "description": "Turn off lock screen widgets via the Dsh policy.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Dsh",
+      "name": "DisableWidgetsOnLockScreen",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-newsandinterests"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 0,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "not measured",
+    "explanation": "Removes widgets such as weather from the lock screen. Microsoft labels this policy as Insider Preview, so it may not take effect on every build. The wider AllowNewsAndInterests=0 policy covers the whole Widgets experience.",
+    "whoBenefits": "Users who want a clean lock screen.",
+    "tradeoff": "Insider-only per Microsoft Learn; no effect on release builds until it ships. No weather or widget info on the lock screen once it applies.",
+    "policyDocumented": true
+  },
+  {
+    "id": "edge-copilot-icon-off",
+    "category": "edge-browser",
+    "description": "Hide the Copilot Chat icon in the Edge toolbar (Entra ID profiles).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+      "name": "Microsoft365CopilotChatIconEnabled",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-policies/microsoft365copilotchaticonenabled",
+      "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-policies/edgeentracopilotpagecontext",
+      "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-policies/hubssidebarenabled"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Sets the documented Edge policy Microsoft365CopilotChatIconEnabled to 0, which hides the Copilot Chat icon (Edge 139 and later, Entra ID profiles only). Page-context handling is a separate tweak.",
+    "whoBenefits": "Edge users signed in with a work or school account.",
+    "tradeoff": "Only applies to Entra ID profiles. The icon is hidden; Copilot itself is not removed.",
+    "policyDocumented": true
+  },
+  {
+    "id": "edge-copilot-page-context-off",
+    "category": "edge-browser",
+    "description": "Stop Edge Copilot reading page context for Entra ID users (also disables Microsoft 365 link auto-open in Copilot).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+      "name": "EdgeEntraCopilotPageContext",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": "snapshot",
+    "risk": "moderate",
+    "breaks": "Copilot page-context features for licensed Entra users.",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-policies/microsoft365copilotchaticonenabled",
+      "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-policies/edgeentracopilotpagecontext",
+      "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-policies/hubssidebarenabled"
+    ],
+    "preset": "balanced",
+    "verification": "new-unverified",
+    "effectiveness": 0,
+    "evidenceQuality": "none",
+    "measuredEffect": "not measured",
+    "explanation": "Sets EdgeEntraCopilotPageContext to 0. Besides stopping Copilot from reading the page you are on, Microsoft documents that this also turns off M365LinksAutoOpenCopilotEnabled, so Microsoft 365 links no longer open in Copilot, for licensed Entra users.",
+    "whoBenefits": "Organisations or users who do not want Copilot to read page content",
+    "tradeoff": "A functional change, not just hiding an icon: Copilot page summaries and Microsoft 365 link handoff stop working for Entra ID profiles.",
+    "managedDeviceImpact": "Overrides an Edge policy your admin may have set; check edge://policy.",
+    "policyDocumented": true
+  },
+  {
+    "id": "outlook-new-migration-off",
+    "category": "components",
+    "description": "Stop Outlook prompting users to migrate to the new Outlook.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Policies\\Microsoft\\office\\16.0\\outlook\\preferences",
+      "name": "NewOutlookMigrationUserSetting",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/microsoft-365-apps/outlook/get-started/control-install"
+    ],
+    "preset": "safe",
+    "verification": "new-unverified",
+    "effectiveness": 1,
+    "evidenceQuality": "mixed",
+    "measuredEffect": "not measured",
+    "explanation": "Disables the automatic migration to the new Outlook for Windows in classic Outlook. It does not stop the new Outlook app being preinstalled: Microsoft says that cannot be blocked on builds after 23H2.",
+    "whoBenefits": "Classic Outlook users.",
+    "tradeoff": "Only helps with classic Outlook; the new app remains installed.",
+    "policyDocumented": true
   }
 ]

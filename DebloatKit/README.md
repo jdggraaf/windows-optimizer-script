@@ -31,6 +31,27 @@ Apply only some tweaks with `-Only id1,id2`, or leave some out with `-Skip id1,i
 - Applying needs an elevated PowerShell. `-List` and `-WhatIf` don't.
 - Steps that are already at the desired value are left alone, so it is safe to run again.
 
+## GUI
+
+```powershell
+.\DebloatKit-GUI.ps1            # opens the window (Windows PowerShell 5.1 or PowerShell 7)
+.\DebloatKit-GUI.ps1 -SelfTest  # no window: loads XAML + data, tests filter/sort/select, prints counts and the top 10, exit 0 = pass
+```
+
+The GUI is a front end only. It never writes the registry or services; every change goes through `DebloatKit.ps1` in a separate process. If the thread is not STA it relaunches itself with `-STA`.
+
+- **Data**: runs `DebloatKit.ps1 -List -AsJson -IncludeUnverified` in a child process (no admin needed, off the UI thread, "Loading..." overlay) and joins it with `tweak-catalog.json` for the explanations. All 139 catalog entries are shown.
+- **Layout**: filters on the left (search, category, preset, risk, status, "Only proven (evidence strong/mixed)", group and sort), the tweak grid in the middle (checkbox, name/id, category, 0-5 stars, evidence badge, preset/risk badge, status, "unverified" badge), and a detail pane on the right. The default view is grouped and sorted **most effective first**. The panes are resizable.
+- **Detail pane**: plain explanation, measured effect, who benefits, trade-off, what it can break, the exact changes (implementation steps), how it is reverted, and evidence links that open in your default browser.
+- **Banner**: managed-device warning from the engine (Entra / domain / MDM, tenant) and whether the GUI is elevated.
+- **Presets other than safe** are listed, but their checkboxes are disabled ("Preset not enabled in this version"). Unverified tweaks are never checked by default and carry a purple badge. Tweaks the engine would skip (status Skipped) cannot be ticked either.
+- **Select recommended** ticks tweaks that are safe preset, effectiveness 2 or higher, evidence not "none", not unverified, and not already applied. **Clear** unticks everything.
+- **Preview changes** runs the engine with `-WhatIf -AsJson -Only <ids>` and shows the plan in a table. It writes nothing.
+- **Apply selected** always asks for confirmation first (lists the ids and the restore-point note), then starts an elevated engine process (UAC) with `-Only <ids>`. `-Force` is added only when the device is managed **and** you ticked "I understand this is a managed device"; `-IncludeUnverified` is added only when you selected an unverified tweak. The exit code and engine output are shown afterwards and the list refreshes.
+- **Undo last run** asks for confirmation, then runs the elevated engine with `-Undo latest`. **Refresh** reloads the status. **Open log folder** opens `%ProgramData%\DebloatKit`.
+
+The effectiveness score (0-5) comes from the catalog and is based on measured evidence only. A 0 means no measurable speed gain was found, not that the tweak is harmful or useless (many are privacy tweaks).
+
 ## Tests
 
 ```powershell

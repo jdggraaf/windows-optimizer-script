@@ -39,6 +39,22 @@
 .PARAMETER AllowIrreversible
     Allow steps that have no exact undo (AppX removal).
 
+.PARAMETER ExpectedSid
+    SID of the user who started the GUI. If this process runs as someone else and a per-user (HKCU)
+    registry step is involved, the engine refuses before changing anything.
+
+.PARAMETER IncludeUnverified
+    Catalog entries with verification 'new-unverified' (added from fresh research, not yet tested on
+    a real machine) are skipped unless this switch is passed.
+
+.PARAMETER AsJson
+    With -List or -WhatIf: write machine-readable JSON to stdout instead of tables. -List gives
+    {managed:{...}, tweaks:[...]}; -WhatIf gives an array of plan steps. Nothing else is written to
+    stdout; warnings go to stderr so the JSON stays parseable.
+
+.PARAMETER SortBy
+    With -List: 'default' (category, id) or 'effectiveness' (highest score first).
+
 .EXAMPLE
     .\DebloatKit.ps1 -List
 
@@ -74,11 +90,29 @@ param(
     [Parameter(ParameterSetName = 'Apply')]
     [switch]$Force,
 
+    # SID of the user the GUI runs as. When the elevated process runs as a DIFFERENT user (UAC with
+    # another admin's credentials), per-user (HKCU) steps would land in the wrong hive, so they are refused.
+    [Parameter(ParameterSetName = 'Apply')]
+    [Parameter(ParameterSetName = 'Undo')]
+    [string]$ExpectedSid,
+
     [Parameter(ParameterSetName = 'Apply')]
     [switch]$NoRestorePoint,
 
     [Parameter(ParameterSetName = 'Apply')]
     [switch]$AllowIrreversible,
+
+    [Parameter(ParameterSetName = 'Apply')]
+    [Parameter(ParameterSetName = 'List')]
+    [switch]$IncludeUnverified,
+
+    [Parameter(ParameterSetName = 'Apply')]
+    [Parameter(ParameterSetName = 'List')]
+    [switch]$AsJson,
+
+    [Parameter(ParameterSetName = 'List')]
+    [ValidateSet('default', 'effectiveness')]
+    [string]$SortBy = 'default',
 
     [string]$CatalogPath,
     [string]$StateDir
@@ -122,6 +156,21 @@ function Write-RunLog([hashtable]$Entry) {
 function Save-State($State, [string]$Path) {
     if ($script:DryRun) { return }
     $State | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $Path -Encoding UTF8 -WhatIf:$false
+}
+
+function Get-Prop($Obj, [string]$Name, $Default = $null) {
+    # StrictMode-safe optional property read (older or test catalogs lack the newer fields).
+    if ($null -ne $Obj -and $Obj.PSObject.Properties.Name -contains $Name) { $Obj.$Name } else { $Default }
+}
+
+function Send-Warning([string]$Message) {
+    # With -AsJson stdout must stay clean JSON, so the warning goes to stderr instead.
+    if ($AsJson) { [Console]::Error.WriteLine("WARNING: $Message") } else { Write-Warning $Message }
+}
+
+function Write-Info([string]$Message, $Color = $null) {
+    if ($AsJson) { return }
+    if ($Color) { Write-Host $Message -ForegroundColor $Color } else { Write-Host $Message }
 }
 
 function Format-Val($v, [string]$IfNull = '<absent>', [int]$Max = 60) {
@@ -270,6 +319,9 @@ function Get-Plan($Tweak, $Managed) {
     if ($EngineHandledIds -contains $Tweak.id) {
         return @([pscustomobject]($base + @{ type = 'engine'; target = 'restore point'; current = $null; desired = $null; action = 'Skip'; reason = 'handled by the engine (-NoRestorePoint to disable)' }))
     }
+    if (-not $IncludeUnverified -and (Get-Prop $Tweak 'verification') -eq 'new-unverified') {
+        return @([pscustomobject]($base + @{ type = 'policy'; target = $Tweak.id; current = $null; desired = $null; action = 'Skip'; reason = 'unverified new tweak; use -IncludeUnverified' }))
+    }
     if ($Managed -and (($ManagedSkipCategories -contains $Tweak.category) -or ($ManagedSkipIds -contains $Tweak.id))) {
         return @([pscustomobject]($base + @{ type = 'policy'; target = $Tweak.id; current = $null; desired = $null; action = 'Skip'; reason = 'managed device: conflicts with organisation policy' }))
     }
@@ -388,8 +440,18 @@ function New-RestorePoint {
 #region main -----------------------------------------------------------------
 
 function Exit-WithError([string]$Message, [int]$Code = 1) {
-    [Console]::Error.WriteLine("ERROR: $Message")
+    # Without -AsJson the message goes to the host stream so a caller using '*>&1 | Tee-Object' (the GUI's
+    # elevated run) captures it. [Console]::Error is not a PowerShell stream and would be lost there.
+    # With -AsJson stdout must stay clean, so it goes to stderr only.
+    if ($AsJson) { [Console]::Error.WriteLine("ERROR: $Message") }
+    else { Write-Host "ERROR: $Message" -ForegroundColor Red }
     exit $Code
+}
+
+function Test-SidMismatch {
+    # True when -ExpectedSid was given and this process runs as another user.
+    if (-not $ExpectedSid) { return $false }
+    [Security.Principal.WindowsIdentity]::GetCurrent().User.Value -ne $ExpectedSid
 }
 
 # ---- Undo ----
@@ -401,6 +463,9 @@ if ($PSCmdlet.ParameterSetName -eq 'Undo') {
     $script:LogFile = Join-Path $StateDir "undo-$($script:RunId).log.jsonl"
     $todo = @($state.steps | Where-Object { $_.result -in 'Applied', 'Verified', 'Unverified' })
     [array]::Reverse($todo)
+    if ((Test-SidMismatch) -and @($todo | Where-Object { $_.type -eq 'registry' -and $_.path -match '^(HKCU:|HKEY_CURRENT_USER)' }).Count) {
+        Exit-WithError 'This process runs as a different user than the one who started the GUI (UAC used other credentials), so per-user (HKCU) steps would be restored in the wrong user hive. Nothing was reverted. Run the undo from an elevated prompt as the signed-in user.'
+    }
     Write-Host "Reverting $($todo.Count) step(s) from $file" -ForegroundColor Cyan
     $failed = 0
     $rows = foreach ($r in $todo) {
@@ -432,7 +497,7 @@ if ($Skip) { $tweaks = @($tweaks | Where-Object { $Skip -notcontains $_.id }) }
 $managed = Get-ManagedState
 $isManaged = $managed.AzureAdJoined -or $managed.DomainJoined -or $managed.MdmEnrolled
 if ($isManaged) {
-    Write-Warning ("Managed device detected (Entra joined: {0}, domain joined: {1}, MDM enrolled: {2}{3}). Policy keys may conflict with your organisation's settings; update and time-sync tweaks are skipped. Check with your IT admin before applying." -f `
+    Send-Warning ("Managed device detected (Entra joined: {0}, domain joined: {1}, MDM enrolled: {2}{3}). Policy keys may conflict with your organisation's settings; update and time-sync tweaks are skipped. Check with your IT admin before applying." -f `
             $managed.AzureAdJoined, $managed.DomainJoined, $managed.MdmEnrolled, $(if ($managed.Tenant) { ", tenant: $($managed.Tenant)" } else { '' }))
 }
 
@@ -444,24 +509,44 @@ if ($List) {
         $acts = @($g.Group.action)
         $status = if ($acts -contains 'Change') { if ($acts -contains 'InSync') { 'Partial' } else { 'NotApplied' } } elseif ($acts -contains 'InSync') { 'Applied' } else { 'Skipped' }
         $t = $tweaks | Where-Object id -EQ $g.Name | Select-Object -First 1
-        [pscustomobject]@{ Id = $g.Name; Category = $t.category; Status = $status; Steps = $acts.Count; Note = (@($g.Group.reason | Where-Object { $_ }) | Select-Object -Unique) -join '; ' }
+        [pscustomobject]@{ Id = $g.Name; Category = $t.category; Status = $status; Steps = $acts.Count; Eff = [int](Get-Prop $t 'effectiveness' 0); Note = (@($g.Group.reason | Where-Object { $_ }) | Select-Object -Unique) -join '; ' }
     }
-    @($rows) | Sort-Object Category, Id | Format-Table -AutoSize -Wrap | Out-String -Width 220 | Write-Host
+    $sorted = if ($SortBy -eq 'effectiveness') { @($rows) | Sort-Object @{ Expression = 'Eff'; Descending = $true }, Category, Id } else { @($rows) | Sort-Object Category, Id }
+    if ($AsJson) {
+        $out = foreach ($r in $sorted) {
+            $t = $tweaks | Where-Object id -EQ $r.Id | Select-Object -First 1
+            [ordered]@{ id = $r.Id; category = $r.Category; preset = $t.preset; status = $r.Status; steps = $r.Steps; note = $r.Note
+                effectiveness = $r.Eff; evidenceQuality = (Get-Prop $t 'evidenceQuality' 'none'); verification = (Get-Prop $t 'verification' '') }
+        }
+        $doc = [ordered]@{
+            managed = [ordered]@{ isManaged = [bool]$isManaged; azureAdJoined = $managed.AzureAdJoined; domainJoined = $managed.DomainJoined; mdmEnrolled = $managed.MdmEnrolled; tenant = $managed.Tenant }
+            tweaks  = @($out)
+        }
+        Write-Output ($doc | ConvertTo-Json -Depth 6)
+        exit 0
+    }
+    $sorted | Format-Table -AutoSize -Wrap | Out-String -Width 220 | Write-Host
     $sum = $rows | Group-Object Status | ForEach-Object { "$($_.Name)=$($_.Count)" }
     Write-Host ("{0} tweaks in preset '{1}': {2}" -f @($rows).Count, $Preset, ($sum -join ', '))
     exit 0
 }
 
+if ($AsJson -and -not $script:DryRun) { Exit-WithError '-AsJson needs -List or -WhatIf (it describes a plan; it does not apply one).' }
+
 # Apply (or -WhatIf preview)
 if (-not $script:DryRun) {
     if (-not (Test-Elevated)) { Exit-WithError 'Applying tweaks requires an elevated (Run as administrator) PowerShell. Use -List or -WhatIf to preview.' }
     if ($isManaged -and -not $Force) { Exit-WithError 'Managed device: re-run with -Force to apply anyway (see warning above).' }
-    if (-not (Test-Path -LiteralPath $StateDir)) { New-Item -ItemType Directory -Path $StateDir -Force -WhatIf:$false | Out-Null }
-    $script:LogFile = Join-Path $StateDir "run-$($script:RunId).log.jsonl"
 }
 
 $changes = @($plan | Where-Object action -EQ 'Change')
-Write-Host ("Preset '{0}': {1} tweaks, {2} steps -> {3} to change, {4} already in effect, {5} skipped" -f $Preset, $tweaks.Count, $plan.Count, $changes.Count, @($plan | Where-Object action -EQ 'InSync').Count, @($plan | Where-Object action -EQ 'Skip').Count) -ForegroundColor Cyan
+Write-Info ("Preset '{0}': {1} tweaks, {2} steps -> {3} to change, {4} already in effect, {5} skipped" -f $Preset, $tweaks.Count, $plan.Count, $changes.Count, @($plan | Where-Object action -EQ 'InSync').Count, @($plan | Where-Object action -EQ 'Skip').Count) Cyan
+
+if ($script:DryRun -and $AsJson) {
+    $items = @(foreach ($p in $plan) { [ordered]@{ tweakId = $p.tweakId; type = $p.type; target = $p.target; current = $(if ($null -ne $p.current) { [string]$p.current } else { $null }); desired = $(if ($null -ne $p.desired) { [string]$p.desired } else { $null }); action = $p.action; reason = $p.reason } })
+    Write-Output (ConvertTo-Json -InputObject $items -Depth 4)
+    exit 0
+}
 
 if ($script:DryRun) {
     $plan | Where-Object action -NE 'InSync' | Sort-Object action, tweakId |
@@ -473,6 +558,14 @@ if ($script:DryRun) {
 
 if ($changes.Count -eq 0) { Write-Host 'Nothing to change.'; exit 0 }
 
+if ((Test-SidMismatch) -and @($changes | Where-Object { $_.type -eq 'registry' -and $_.path -match '^(HKCU:|HKEY_CURRENT_USER)' }).Count) {
+    Exit-WithError 'This process runs as a different user than the one who started the GUI (UAC used other credentials), so per-user (HKCU) tweaks would be written to that other user''s hive and not to yours. Nothing was changed. Run from an elevated prompt as the signed-in user, or deselect the per-user tweaks.'
+}
+
+# Only now (after every refusal check) is anything written to disk.
+if (-not (Test-Path -LiteralPath $StateDir)) { New-Item -ItemType Directory -Path $StateDir -Force -WhatIf:$false | Out-Null }
+$script:LogFile = Join-Path $StateDir "run-$($script:RunId).log.jsonl"
+
 if (-not $NoRestorePoint) {
     Write-Host 'Creating restore point...'
     try { New-RestorePoint; Write-RunLog @{ mode = 'apply'; event = 'restore-point'; result = 'ok' } }
@@ -480,7 +573,7 @@ if (-not $NoRestorePoint) {
 }
 
 $statePath = Join-Path $StateDir "state-$($script:RunId).json"
-$state = [ordered]@{ version = 1; runId = $script:RunId; computer = $env:COMPUTERNAME; user = "$env:USERDOMAIN\$env:USERNAME"; preset = $Preset; catalog = (Resolve-Path $CatalogPath).Path; steps = @() }
+$state = [ordered]@{ version = 1; runId = $script:RunId; computer = $env:COMPUTERNAME; user = "$env:USERDOMAIN\$env:USERNAME"; userSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value; preset = $Preset; catalog = (Resolve-Path $CatalogPath).Path; steps = @() }
 $failed = 0
 foreach ($rec in $changes) {
     $rec | Add-Member -NotePropertyName result -NotePropertyValue 'Pending' -Force
