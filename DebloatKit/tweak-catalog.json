@@ -1,0 +1,5583 @@
+[
+  {
+    "id": "snapshot-restore-point",
+    "category": "other",
+    "description": "Create a restore point (bypass the 24h frequency limit) before any run; engine also writes a JSON state snapshot.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore",
+          "name": "SystemRestorePointCreationFrequency",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "command",
+          "run": "Enable-ComputerRestore -Drive 'C:\\'; Checkpoint-Computer -Description 'tool-pre-run' -RestorePointType MODIFY_SETTINGS",
+          "undo": null
+        }
+      ]
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore",
+      "name": "SystemRestorePointCreationFrequency",
+      "action": "restoreSnapshot"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": "None",
+    "post_install_possible": true,
+    "projects": [
+      "winutil",
+      "win11debloat",
+      "atlas",
+      "perf-evidence",
+      "revios"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://github.com/orgs/Atlas-OS/discussions/1699"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "misc-registry-backup-task",
+    "category": "scheduled-tasks",
+    "description": "Enable daily periodic registry backup (RegIdleBackup).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Configuration Manager",
+      "name": "EnablePeriodicBackup",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Configuration Manager",
+      "name": "EnablePeriodicBackup",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/feature.json"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "telemetry-allowtelemetry-policy",
+    "category": "telemetry-privacy",
+    "description": "Set diagnostic data policy to minimum. Honoured as 0 only on Enterprise/Education; Pro/Home treat it as Required (1).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+      "name": "AllowTelemetry",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+      "name": "AllowTelemetry",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": "Insider builds need telemetry",
+    "ram_or_perf_effect": "Negligible; privacy benefit",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "tiny11",
+      "winutil",
+      "privacy",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/privacy/telemetry/disallow-data-collection.yml",
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "telemetry-datacollection-cv-policy",
+    "category": "telemetry-privacy",
+    "description": "Atlas also sets AllowTelemetry/MaxTelemetryAllowed under CurrentVersion\\Policies and Wow6432Node plus AllowDeviceNameInTelemetry.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection",
+          "name": "AllowTelemetry",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection",
+          "name": "MaxTelemetryAllowed",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection",
+          "name": "AllowTelemetry",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+          "name": "AllowDeviceNameInTelemetry",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection",
+          "name": "AllowTelemetry",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection",
+          "name": "MaxTelemetryAllowed",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection",
+          "name": "AllowTelemetry",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+          "name": "AllowDeviceNameInTelemetry",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/privacy/telemetry/disallow-data-collection.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "telemetry-disable-onesettings",
+    "category": "telemetry-privacy",
+    "description": "Stop OneSettings configuration downloads.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+      "name": "DisableOneSettingsDownloads",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+      "name": "DisableOneSettingsDownloads",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "telemetry-no-feedback-notifications",
+    "category": "telemetry-privacy",
+    "description": "Hide feedback notifications.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+      "name": "DoNotShowFeedbackNotifications",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+      "name": "DoNotShowFeedbackNotifications",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "telemetry-diagtrack-transcript",
+    "category": "telemetry-privacy",
+    "description": "Disable event transcript / mini trace slot and delete DiagTrack ETL logs.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Diagnostics\\DiagTrack\\EventTranscriptKey",
+          "name": "EnableEventTranscript",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Diagnostics\\DiagTrack\\EventTranscriptKey",
+          "name": "MiniTraceSlotEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Diagnostics\\DiagTrack",
+          "name": "ShowedToastAtLevel",
+          "valueType": "DWord",
+          "value": 1
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Diagnostics\\DiagTrack\\EventTranscriptKey",
+          "name": "EnableEventTranscript",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Diagnostics\\DiagTrack\\EventTranscriptKey",
+          "name": "MiniTraceSlotEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Diagnostics\\DiagTrack",
+          "name": "ShowedToastAtLevel",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/privacy/telemetry/disallow-data-collection.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-autologgers-off",
+    "category": "telemetry-privacy",
+    "description": "Disable WMI autologgers Diagtrack-Listener, SQMLogger, SetupPlatformTel.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\WMI\\Autologger\\Diagtrack-Listener",
+          "name": "Start",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\WMI\\Autologger\\SQMLogger",
+          "name": "Start",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\WMI\\Autologger\\SetupPlatformTel",
+          "name": "Start",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "note": "restoreSnapshot; stock Start is typically 1"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/privacy/telemetry/disallow-data-collection.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-ceip-disable",
+    "category": "telemetry-privacy",
+    "description": "Disable Customer Experience Improvement Program.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\SQMClient\\Windows",
+      "name": "CEIPEnable",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\SQMClient\\Windows",
+      "name": "CEIPEnable",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "safe",
+    "verification": "path-from-general-knowledge"
+  },
+  {
+    "id": "priv-wer-disable",
+    "category": "telemetry-privacy",
+    "description": "Disable Windows Error Reporting.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting",
+          "name": "Disabled",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting",
+          "name": "Disabled",
+          "valueType": "DWord",
+          "value": 1
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting",
+          "name": "Disabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting",
+          "name": "Disabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "No crash reports; harder to troubleshoot with Microsoft tooling",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "winutil"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-ifeo-block-compattel",
+    "category": "telemetry-privacy",
+    "description": "Block CompatTelRunner.exe and AggregatorHost.exe through Image File Execution Options.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\CompatTelRunner.exe",
+          "name": "Debugger",
+          "valueType": "String",
+          "value": "cmd.exe"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\AggregatorHost.exe",
+          "name": "Debugger",
+          "valueType": "String",
+          "value": "cmd.exe"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\CompatTelRunner.exe",
+          "name": "Debugger",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\AggregatorHost.exe",
+          "name": "Debugger",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "Compatibility appraiser no longer runs; may affect feature-update readiness checks",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features"
+    ],
+    "preset": "balanced",
+    "verification": "exact-value-unverified"
+  },
+  {
+    "id": "priv-firewall-block-diagtrack",
+    "category": "telemetry-privacy",
+    "description": "Outbound firewall block for DiagTrack and WerSvc services.",
+    "implementation": {
+      "type": "command",
+      "run": "New-NetFirewallRule -DisplayName 'Tool Block DiagTrack' -Direction Outbound -Action Block -Service DiagTrack; New-NetFirewallRule -DisplayName 'Tool Block WerSvc' -Direction Outbound -Action Block -Service WerSvc",
+      "undo": "Remove-NetFirewallRule -DisplayName 'Tool Block DiagTrack','Tool Block WerSvc'"
+    },
+    "revert": "Remove-NetFirewallRule -DisplayName 'Tool Block DiagTrack','Tool Block WerSvc'",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-dotnet-ps-telemetry-optout",
+    "category": "telemetry-privacy",
+    "description": "Opt out of .NET CLI and PowerShell telemetry (machine env vars).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment",
+          "name": "DOTNET_CLI_TELEMETRY_OPTOUT",
+          "valueType": "String",
+          "value": "1"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment",
+          "name": "POWERSHELL_TELEMETRY_OPTOUT",
+          "valueType": "String",
+          "value": "1"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment",
+          "name": "DOTNET_CLI_TELEMETRY_OPTOUT",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment",
+          "name": "POWERSHELL_TELEMETRY_OPTOUT",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-contentdelivery-off",
+    "category": "telemetry-privacy",
+    "description": "Turn off ads, suggestions and silent app installs for the user (also apply to Default user hive).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "OemPreInstalledAppsEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "PreInstalledAppsEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SilentInstalledAppsEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "ContentDeliveryAllowed",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "FeatureManagementEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "PreInstalledAppsEverEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SoftLandingEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContentEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContent-310093Enabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContent-338387Enabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContent-338388Enabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContent-338389Enabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContent-338393Enabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContent-353694Enabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContent-353696Enabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SystemPaneSuggestionsEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "RotatingLockScreenOverlayEnabled",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "note": "restoreSnapshot per value; stock is 1 or absent"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "tiny11",
+      "win11debloat",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-consumer-features-off",
+    "category": "telemetry-privacy",
+    "description": "Block consumer experiences / suggested app installs by policy.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "name": "DisableWindowsConsumerFeatures",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "name": "DisableConsumerAccountStateContent",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "name": "DisableCloudOptimizedContent",
+          "valueType": "DWord",
+          "value": 1
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "name": "DisableWindowsConsumerFeatures",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "name": "DisableConsumerAccountStateContent",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "name": "DisableCloudOptimizedContent",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "tiny11",
+      "winutil",
+      "privacy"
+    ],
+    "evidence": [
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-advertising-id",
+    "category": "telemetry-privacy",
+    "description": "Disable advertising ID, tailored experiences, ink/typing harvesting.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo",
+          "name": "Enabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo",
+          "name": "DisabledByGroupPolicy",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy",
+          "name": "TailoredExperiencesWithDiagnosticDataEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\InputPersonalization",
+          "name": "RestrictImplicitInkCollection",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\InputPersonalization",
+          "name": "RestrictImplicitTextCollection",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\InputPersonalization\\TrainedDataStore",
+          "name": "HarvestContacts",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo",
+          "name": "Enabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo",
+          "name": "DisabledByGroupPolicy",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy",
+          "name": "TailoredExperiencesWithDiagnosticDataEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\InputPersonalization",
+          "name": "RestrictImplicitInkCollection",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\InputPersonalization",
+          "name": "RestrictImplicitTextCollection",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\InputPersonalization\\TrainedDataStore",
+          "name": "HarvestContacts",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "tiny11",
+      "win11debloat",
+      "winutil",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-activity-history",
+    "category": "telemetry-privacy",
+    "description": "Disable activity feed, publishing and upload of user activities.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "EnableActivityFeed",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "PublishUserActivities",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "UploadUserActivities",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "EnableActivityFeed",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "PublishUserActivities",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "UploadUserActivities",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": "Winutil notes list EnableActivityFeed=1 which conflicts with intent; 0 used",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "winutil",
+      "win11debloat",
+      "privacy",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://docs.atlasos.net/faq/install-faq/removed-features/",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-cdp-disable",
+    "category": "telemetry-privacy",
+    "description": "Disable Cross-Device Platform.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+      "name": "EnableCdp",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+      "name": "EnableCdp",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": "Nearby sharing / cross-device resume",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-app-launch-tracking-off",
+    "category": "telemetry-privacy",
+    "description": "Stop tracking app launches for Start suggestions.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+      "name": "Start_TrackProgs",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+      "name": "Start_TrackProgs",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": "Start 'most used' list empty",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil",
+      "win11debloat",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-search-cortana-bing-off",
+    "category": "telemetry-privacy",
+    "description": "Remove Bing web results/Cortana/location use from Windows Search by policy.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Policies\\Microsoft\\Windows\\Explorer",
+          "name": "DisableSearchBoxSuggestions",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "AllowCortana",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "DisableWebSearch",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "ConnectedSearchUseWeb",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "AllowSearchToUseLocation",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Policies\\Microsoft\\Windows\\Explorer",
+          "name": "DisableSearchBoxSuggestions",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "AllowCortana",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "DisableWebSearch",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "ConnectedSearchUseWeb",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "AllowSearchToUseLocation",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "win11debloat",
+      "privacy",
+      "tiny11"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/Regfiles/Disable_Bing_Cortana_In_Search.reg",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-font-providers-off",
+    "category": "telemetry-privacy",
+    "description": "Stop online font provider downloads.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+      "name": "EnableFontProviders",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+      "name": "EnableFontProviders",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-storage-health-updates-off",
+    "category": "telemetry-privacy",
+    "description": "Stop disk health model downloads.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\StorageHealth",
+      "name": "AllowDiskHealthModelUpdates",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\StorageHealth",
+      "name": "AllowDiskHealthModelUpdates",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-find-my-device-off",
+    "category": "telemetry-privacy",
+    "description": "Disable Find My Device.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\FindMyDevice",
+      "name": "AllowFindMyDevice",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\FindMyDevice",
+      "name": "AllowFindMyDevice",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": "Cannot locate a lost device",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-settings-sync-off",
+    "category": "telemetry-privacy",
+    "description": "Disable settings sync and block user override.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\SettingSync",
+          "name": "DisableSettingSync",
+          "valueType": "DWord",
+          "value": 2
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\SettingSync",
+          "name": "DisableSettingSyncUserOverride",
+          "valueType": "DWord",
+          "value": 1
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\SettingSync",
+          "name": "DisableSettingSync",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\SettingSync",
+          "name": "DisableSettingSyncUserOverride",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-location-deny",
+    "category": "telemetry-privacy",
+    "description": "Deny location access system-wide and disable lfsvc / map updates.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location",
+          "name": "Value",
+          "valueType": "String",
+          "value": "Deny"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\Maps",
+          "name": "AutoUpdateEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "service",
+          "name": "lfsvc",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location",
+          "name": "Value",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\Maps",
+          "name": "AutoUpdateEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "service",
+          "name": "lfsvc",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "Find My Device, weather, maps, automatic time zone",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil",
+      "win11debloat",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-activation-no-genticket",
+    "category": "other",
+    "description": "Stop genuine ticket generation.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\CurrentVersion\\Software Protection Platform",
+      "name": "NoGenTicket",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\CurrentVersion\\Software Protection Platform",
+      "name": "NoGenTicket",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": "Store genuine validation tickets may not be issued",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-apps-deny-sensors",
+    "category": "telemetry-privacy",
+    "description": "Force-deny app access to camera, microphone, location.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "name": "LetAppsAccessCamera",
+          "valueType": "DWord",
+          "value": 2
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "name": "LetAppsAccessMicrophone",
+          "valueType": "DWord",
+          "value": 2
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "name": "LetAppsAccessLocation",
+          "valueType": "DWord",
+          "value": 2
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "name": "LetAppsAccessCamera",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "name": "LetAppsAccessMicrophone",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "name": "LetAppsAccessLocation",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "breaks-features",
+    "breaks": "Video calls, voice input, maps in UWP apps stop working",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "aggressive",
+    "verification": "from-notes"
+  },
+  {
+    "id": "priv-defender-cloud-reporting-off",
+    "category": "security",
+    "description": "Disable Defender cloud reporting / sample submission and MRT reporting.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "command",
+          "run": "Set-MpPreference -MAPSReporting 0 -SubmitSamplesConsent 2",
+          "undo": "Set-MpPreference -MAPSReporting 2 -SubmitSamplesConsent 1"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\MRT",
+          "name": "DontReportInfectionInformation",
+          "valueType": "DWord",
+          "value": 1
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        "Set-MpPreference -MAPSReporting 2 -SubmitSamplesConsent 1",
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\MRT",
+          "name": "DontReportInfectionInformation",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "reduces-security",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy",
+      "winutil"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "never-default",
+    "verification": "mixed"
+  },
+  {
+    "id": "priv-security-maintenance-toast-off",
+    "category": "ui-shell",
+    "description": "Hide Security and Maintenance toasts.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Notifications\\Settings\\Windows.SystemToast.SecurityAndMaintenance",
+      "name": "Enabled",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Notifications\\Settings\\Windows.SystemToast.SecurityAndMaintenance",
+      "name": "Enabled",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://github.com/meetrevision/playbook/blob/c6c6e7572c19de403f6acef80717c35fa344f366/src/Configuration/Tasks/start.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "task-office-telemetry-off",
+    "category": "scheduled-tasks",
+    "description": "Disable all Office telemetry scheduled tasks.",
+    "implementation": {
+      "type": "task",
+      "path": "\\Microsoft\\Office\\",
+      "name": "*",
+      "state": "Disabled"
+    },
+    "revert": {
+      "type": "task",
+      "path": "x",
+      "name": "*",
+      "state": "restoreSnapshot"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "task-telemetry-set",
+    "category": "scheduled-tasks",
+    "description": "Disable telemetry scheduled tasks (Appraiser, ProgramDataUpdater, CEIP, Chkdsk Proxy, WER QueueReporting).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\Application Experience\\",
+          "name": "Microsoft Compatibility Appraiser",
+          "state": "Disabled"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\Application Experience\\",
+          "name": "ProgramDataUpdater",
+          "state": "Disabled"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\",
+          "name": "*",
+          "state": "Disabled"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\Chkdsk\\",
+          "name": "Proxy",
+          "state": "Disabled"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\Windows Error Reporting\\",
+          "name": "QueueReporting",
+          "state": "Disabled"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\Application Experience\\",
+          "name": "Microsoft Compatibility Appraiser",
+          "state": "restoreSnapshot"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\Application Experience\\",
+          "name": "ProgramDataUpdater",
+          "state": "restoreSnapshot"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\",
+          "name": "*",
+          "state": "restoreSnapshot"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\Chkdsk\\",
+          "name": "Proxy",
+          "state": "restoreSnapshot"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\Windows Error Reporting\\",
+          "name": "QueueReporting",
+          "state": "restoreSnapshot"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "tiny11",
+      "revios"
+    ],
+    "evidence": [
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "svc-diagtrack-disable",
+    "category": "services",
+    "description": "Stop and disable Connected User Experiences and Telemetry.",
+    "implementation": {
+      "type": "service",
+      "name": "DiagTrack",
+      "startType": "Disabled",
+      "stockDefaultHint": "Automatic (2)"
+    },
+    "revert": {
+      "type": "service",
+      "name": "DiagTrack",
+      "startType": "restoreSnapshot",
+      "stockDefaultHint": "Automatic (2)"
+    },
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": "Small; removes telemetry I/O",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "winutil",
+      "privacy"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/services.yml",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://raw.githubusercontent.com/farag2/Sophia-Script-for-Windows/master/README.md"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "svc-diag-compat-set",
+    "category": "services",
+    "description": "Disable WerSvc, PcaSvc, diagnosticshub collector, wercplsupport.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "WerSvc",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "PcaSvc",
+          "startType": "Disabled",
+          "stockDefaultHint": "Automatic (2)"
+        },
+        {
+          "type": "service",
+          "name": "diagnosticshub.standardcollector.service",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "wercplsupport",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "WerSvc",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "PcaSvc",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Automatic (2)"
+        },
+        {
+          "type": "service",
+          "name": "diagnosticshub.standardcollector.service",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "wercplsupport",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "No Program Compatibility Assistant prompts, no crash reports",
+    "ram_or_perf_effect": "Fewer background services; hard to quantify",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/services.yml"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "svc-wdi-dam-wisvc-wecsvc",
+    "category": "services",
+    "description": "ReviOS extra set: WdiServiceHost, WdiSystemHost, dam, wisvc, Wecsvc.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "WdiServiceHost",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "WdiSystemHost",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "dam",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "wisvc",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "Wecsvc",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "WdiServiceHost",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "WdiSystemHost",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "dam",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "wisvc",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "Wecsvc",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "Built-in troubleshooters, Insider enrollment; some are protected and need registry Start=4",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "svc-onesync-trkwks",
+    "category": "services",
+    "description": "Disable OneSyncSvc (and per-user instances) and TrkWks.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "OneSyncSvc",
+          "startType": "Disabled",
+          "stockDefaultHint": "Automatic (2)"
+        },
+        {
+          "type": "service",
+          "name": "TrkWks",
+          "startType": "Disabled",
+          "stockDefaultHint": "Automatic (2)"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "OneSyncSvc",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Automatic (2)"
+        },
+        {
+          "type": "service",
+          "name": "TrkWks",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Automatic (2)"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "Mail/Calendar/People sync, NTFS link tracking",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/services.yml",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "svc-ucpd-disable",
+    "category": "services",
+    "description": "Disable UCPD driver and its scheduled task (reboot needed).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "UCPD",
+          "startType": "Disabled",
+          "stockDefaultHint": "Automatic (2)"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\AppxDeploymentClient\\",
+          "name": "UCPD velocity",
+          "state": "Disabled"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "UCPD",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Automatic (2)"
+        },
+        {
+          "type": "task",
+          "path": "\\Microsoft\\Windows\\AppxDeploymentClient\\",
+          "name": "UCPD velocity",
+          "state": "restoreSnapshot"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "Removes Microsoft default-app hijack protection",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/services.yml"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "drv-netbt-gpuenergy-telemetry",
+    "category": "services",
+    "description": "Disable NetBT, GpuEnergyDrv, tcpipreg and Telemetry driver entries (registry Start=4, reboot).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\NetBT",
+          "name": "Start",
+          "valueType": "DWord",
+          "value": 4
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\GpuEnergyDrv",
+          "name": "Start",
+          "valueType": "DWord",
+          "value": 4
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\tcpipreg",
+          "name": "Start",
+          "valueType": "DWord",
+          "value": 4
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "note": "restoreSnapshot; NetBT stock Start=1"
+    },
+    "risk": "breaks-features",
+    "breaks": "NetBIOS name resolution, legacy SMB discovery; tcpipreg flagged experimental by ReviOS",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/services.yml"
+    ],
+    "preset": "aggressive",
+    "verification": "from-notes"
+  },
+  {
+    "id": "svc-edgeupdate-manual-condrv-auto",
+    "category": "services",
+    "description": "edgeupdate Manual (do not disable) and condrv Automatic to fix 0xd000003a.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "edgeupdate",
+          "startType": "Manual"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\condrv",
+          "name": "Start",
+          "valueType": "DWord",
+          "value": 2
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "edgeupdate",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": null
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\condrv",
+          "name": "Start",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/services.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "svc-wsaifabric-manual",
+    "category": "services",
+    "description": "Set WSAIFabricSvc to Manual (or Disabled) to avoid AI fabric autostart.",
+    "implementation": {
+      "type": "service",
+      "name": "WSAIFabricSvc",
+      "startType": "Manual"
+    },
+    "revert": {
+      "type": "service",
+      "name": "WSAIFabricSvc",
+      "startType": "restoreSnapshot",
+      "stockDefaultHint": null
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "win11debloat",
+      "perf-evidence",
+      "winutil",
+      "tiny11"
+    ],
+    "evidence": [
+      "https://github.com/Raphire/Win11Debloat",
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "svc-cscservice-sharedaccess-off",
+    "category": "services",
+    "description": "Winutil: CscService and SharedAccess Disabled.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "CscService",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "SharedAccess",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "CscService",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "SharedAccess",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "Offline Files; Internet Connection Sharing, Hyper-V/WSL NAT",
+    "ram_or_perf_effect": "Reviewer measured 100 MB or less",
+    "post_install_possible": true,
+    "projects": [
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "svc-wlidsvc-disable",
+    "category": "services",
+    "description": "Disable Microsoft Account Sign-in Assistant.",
+    "implementation": {
+      "type": "service",
+      "name": "wlidsvc",
+      "startType": "Disabled",
+      "stockDefaultHint": "Manual (3)"
+    },
+    "revert": {
+      "type": "service",
+      "name": "wlidsvc",
+      "startType": "restoreSnapshot",
+      "stockDefaultHint": "Manual (3)"
+    },
+    "risk": "breaks-features",
+    "breaks": "MSA sign-in, Store, Xbox, OneDrive auth",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "aggressive",
+    "verification": "from-notes"
+  },
+  {
+    "id": "svc-licensemanager-disable",
+    "category": "services",
+    "description": "Disable License Manager.",
+    "implementation": {
+      "type": "service",
+      "name": "LicenseManager",
+      "startType": "Disabled",
+      "stockDefaultHint": "Manual (3)"
+    },
+    "revert": {
+      "type": "service",
+      "name": "LicenseManager",
+      "startType": "restoreSnapshot",
+      "stockDefaultHint": "Manual (3)"
+    },
+    "risk": "breaks-features",
+    "breaks": "Store app licensing and installs",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "aggressive",
+    "verification": "from-notes"
+  },
+  {
+    "id": "svc-w32time-nosync",
+    "category": "services",
+    "description": "Disable time sync (Type NoSync).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\W32Time\\Parameters",
+      "name": "Type",
+      "valueType": "String",
+      "value": "NoSync"
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\W32Time\\Parameters",
+      "name": "Type",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "reduces-security",
+    "breaks": "Clock drift breaks TLS, Kerberos, certificates",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "pwr-hibernate-off",
+    "category": "power",
+    "description": "Disable hibernation (and Fast Startup). Skip on laptops by default.",
+    "implementation": {
+      "type": "command",
+      "run": "powercfg /hibernate off",
+      "undo": "powercfg /hibernate on"
+    },
+    "revert": "powercfg /hibernate on",
+    "risk": "moderate",
+    "breaks": "No hibernate; sleep heat on some modern-standby laptops (playbook #116, #199)",
+    "ram_or_perf_effect": "Frees hiberfil.sys disk space",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "winutil"
+    ],
+    "evidence": [
+      "https://github.com/meetrevision/playbook/blob/c6c6e7572c19de403f6acef80717c35fa344f366/src/Configuration/Tasks/start.yml",
+      "https://revi.cc/docs/faq/troubleshoot/overheating",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/scripts/script-power.yml",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "pwr-fast-startup-off",
+    "category": "power",
+    "description": "Disable Fast Startup (hybrid boot).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+      "name": "HiberbootEnabled",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+      "name": "HiberbootEnabled",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": "Clean cold boots; slightly slower boot on HDD",
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "win11debloat",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/scripts/script-power.yml",
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "pwr-ultra-performance-plan",
+    "category": "power",
+    "description": "Create custom high-performance plan from the Ultimate Performance base and activate it (desktops only).",
+    "implementation": {
+      "type": "command",
+      "run": "$old=(powercfg /getactivescheme); powercfg /duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 3ff9831b-6f80-4830-8178-736cd4229e7b; powercfg /setactive 3ff9831b-6f80-4830-8178-736cd4229e7b",
+      "undo": "powercfg /setactive <recorded prior scheme>; powercfg /delete 3ff9831b-6f80-4830-8178-736cd4229e7b"
+    },
+    "revert": "powercfg /setactive <recorded prior scheme>; powercfg /delete 3ff9831b-6f80-4830-8178-736cd4229e7b",
+    "risk": "moderate",
+    "breaks": "Higher idle power and heat; unsuitable for battery laptops",
+    "ram_or_perf_effect": "Lower latency, higher power draw",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "winutil"
+    ],
+    "evidence": [
+      "https://github.com/meetrevision/playbook/blob/c6c6e7572c19de403f6acef80717c35fa344f366/src/Configuration/Tasks/start.yml",
+      "https://revi.cc/docs/features"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "pwr-balanced-plan",
+    "category": "power",
+    "description": "Activate Balanced plan.",
+    "implementation": {
+      "type": "command",
+      "run": "powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e",
+      "undo": "powercfg /setactive <recorded prior scheme>"
+    },
+    "revert": "powercfg /setactive <recorded prior scheme>",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/scripts/script-power.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-memory-compression-off",
+    "category": "performance",
+    "description": "Disable memory compression (reboot).",
+    "implementation": {
+      "type": "command",
+      "run": "Disable-MMAgent -mc",
+      "undo": "Enable-MMAgent -mc"
+    },
+    "revert": "Enable-MMAgent -mc",
+    "risk": "moderate",
+    "breaks": "More paging on low-RAM systems",
+    "ram_or_perf_effect": "Slight CPU saving, slightly more RAM use",
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml",
+      "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-ntfs-lastaccess",
+    "category": "performance",
+    "description": "Disable NTFS last-access updates.",
+    "implementation": {
+      "type": "command",
+      "run": "fsutil behavior set disablelastaccess 1",
+      "undo": "fsutil behavior set disablelastaccess 2"
+    },
+    "revert": "fsutil behavior set disablelastaccess 2",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": "Fewer metadata writes",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-ntfs-8dot3-off",
+    "category": "performance",
+    "description": "Disable 8.3 short-name creation.",
+    "implementation": {
+      "type": "command",
+      "run": "fsutil behavior set disable8dot3 1",
+      "undo": "fsutil behavior set disable8dot3 2"
+    },
+    "revert": "fsutil behavior set disable8dot3 2",
+    "risk": "moderate",
+    "breaks": "Legacy installers / backup tools relying on 8.3 names",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-svchost-split-threshold",
+    "category": "performance",
+    "description": "Raise SvcHostSplitThresholdInKB so services share svchost processes (reboot).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control",
+      "name": "SvcHostSplitThresholdInKB",
+      "valueType": "DWord",
+      "value": 4294967295
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control",
+      "name": "SvcHostSplitThresholdInKB",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": "One shared-host crash takes more services down; XboxGipSvc breaks under naive grouping",
+    "ram_or_perf_effect": "Fewer processes; marginal RAM saving",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "balanced",
+    "verification": "value-inferred"
+  },
+  {
+    "id": "perf-win32priority-separation",
+    "category": "performance",
+    "description": "Foreground priority boost (38 / 0x26).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl",
+      "name": "Win32PrioritySeparation",
+      "valueType": "DWord",
+      "value": 38
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl",
+      "name": "Win32PrioritySeparation",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": "Slightly more responsive foreground apps",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/performance/system/win32-priority-separation.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-shutdown-timeouts",
+    "category": "performance",
+    "description": "Shorten shutdown/hang timeouts, zero menu delay.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "MenuShowDelay",
+          "valueType": "String",
+          "value": "0"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "ActiveWndTrkTimeout",
+          "valueType": "String",
+          "value": "10"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "HungAppTimeout",
+          "valueType": "String",
+          "value": "2000"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "WaitToKillAppTimeout",
+          "valueType": "String",
+          "value": "2000"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "LowLevelHooksTimeout",
+          "valueType": "String",
+          "value": "1000"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "AutoEndTasks",
+          "valueType": "String",
+          "value": "1"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control",
+          "name": "WaitToKillServiceTimeout",
+          "valueType": "String",
+          "value": "2000"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "MenuShowDelay",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "ActiveWndTrkTimeout",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "HungAppTimeout",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "WaitToKillAppTimeout",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "LowLevelHooksTimeout",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "AutoEndTasks",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control",
+          "name": "WaitToKillServiceTimeout",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "Apps killed before saving on shutdown (AutoEndTasks)",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features"
+    ],
+    "preset": "balanced",
+    "verification": "values-partly-inferred"
+  },
+  {
+    "id": "perf-gamedvr-off",
+    "category": "performance",
+    "description": "Disable Game DVR background recording and FSE behaviour.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\System\\GameConfigStore",
+          "name": "GameDVR_FSEBehaviorMode",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\System\\GameConfigStore",
+          "name": "GameDVR_Enabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR",
+          "name": "AllowGameDVR",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\System\\GameConfigStore",
+          "name": "GameDVR_FSEBehaviorMode",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\System\\GameConfigStore",
+          "name": "GameDVR_Enabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR",
+          "name": "AllowGameDVR",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "win11debloat"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/meetrevision/playbook/main/src/Configuration/Tasks/final.yml",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://github.com/Raphire/Win11Debloat"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-background-apps-off",
+    "category": "performance",
+    "description": "Block UWP background apps.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "name": "LetAppsRunInBackground",
+          "valueType": "DWord",
+          "value": 2
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications",
+          "name": "GlobalUserDisabled",
+          "valueType": "DWord",
+          "value": 1
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "name": "LetAppsRunInBackground",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications",
+          "name": "GlobalUserDisabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "Alarms/mail/live tiles stop in background",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "winutil",
+      "privacy"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-explorer-autodiscovery-off",
+    "category": "performance",
+    "description": "Stop Explorer folder-type auto detection.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags\\AllFolders\\Shell",
+      "name": "FolderType",
+      "valueType": "String",
+      "value": "NotSpecified"
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags\\AllFolders\\Shell",
+      "name": "FolderType",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": "Clearing Bags/BagMRU loses per-folder view customisations (back up first)",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-fth-disable",
+    "category": "performance",
+    "description": "Disable Fault Tolerant Heap.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\FTH",
+      "name": "Enabled",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\FTH",
+      "name": "Enabled",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": "No automatic heap shims for crashing apps",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-sleepstudy-off",
+    "category": "performance",
+    "description": "Disable Sleep Study diagnostic logs.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "command",
+          "run": "wevtutil sl Microsoft-Windows-SleepStudy/Diagnostic /e:false",
+          "undo": "wevtutil sl Microsoft-Windows-SleepStudy/Diagnostic /e:true"
+        },
+        {
+          "type": "command",
+          "run": "wevtutil sl Microsoft-Windows-Kernel-Processor-Power/Diagnostic /e:false",
+          "undo": "wevtutil sl Microsoft-Windows-Kernel-Processor-Power/Diagnostic /e:true"
+        },
+        {
+          "type": "command",
+          "run": "wevtutil sl Microsoft-Windows-UserModePowerService/Diagnostic /e:false",
+          "undo": "wevtutil sl Microsoft-Windows-UserModePowerService/Diagnostic /e:true"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        "wevtutil sl Microsoft-Windows-SleepStudy/Diagnostic /e:true",
+        "wevtutil sl Microsoft-Windows-Kernel-Processor-Power/Diagnostic /e:true",
+        "wevtutil sl Microsoft-Windows-UserModePowerService/Diagnostic /e:true"
+      ]
+    },
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-reserved-storage-off",
+    "category": "performance",
+    "description": "Disable Reserved Storage (~7 GB).",
+    "implementation": {
+      "type": "command",
+      "run": "DISM /Online /Set-ReservedStorageState /State:Disabled",
+      "undo": "DISM /Online /Set-ReservedStorageState /State:Enabled"
+    },
+    "revert": "DISM /Online /Set-ReservedStorageState /State:Enabled",
+    "risk": "moderate",
+    "breaks": "Feature updates may fail on low disk space",
+    "ram_or_perf_effect": "Frees about 7 GB disk",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "winutil"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-storage-sense-off",
+    "category": "performance",
+    "description": "Disable Storage Sense auto-cleanup.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\StorageSense\\Parameters\\StoragePolicy",
+      "name": "01",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\StorageSense\\Parameters\\StoragePolicy",
+      "name": "01",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": "Temp/Recycle Bin not auto-purged",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "win11debloat",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-delete-temp-files",
+    "category": "performance",
+    "description": "Delete user and system temp files (best effort).",
+    "implementation": {
+      "type": "command",
+      "run": "Remove-Item $env:TEMP\\*,C:\\Windows\\Temp\\* -Recurse -Force -EA SilentlyContinue",
+      "undo": null
+    },
+    "revert": "not reversible",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-dism-cleanup-resetbase",
+    "category": "performance",
+    "description": "Component store cleanup with /ResetBase.",
+    "implementation": {
+      "type": "command",
+      "run": "DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase",
+      "undo": null
+    },
+    "revert": "not reversible",
+    "risk": "moderate",
+    "breaks": "Cannot uninstall superseded updates",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "perf-bootmenu-legacy",
+    "category": "performance",
+    "description": "Legacy F8 boot menu policy.",
+    "implementation": {
+      "type": "command",
+      "run": "bcdedit /set {default} bootmenupolicy legacy",
+      "undo": "bcdedit /set {default} bootmenupolicy standard"
+    },
+    "revert": "bcdedit /set {default} bootmenupolicy standard",
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "winutil"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/feature.json"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "net-delivery-optimization-off",
+    "category": "network",
+    "description": "Disable peer-to-peer Delivery Optimization (0 HTTP only; 99 simple also acceptable).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+      "name": "DODownloadMode",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+      "name": "DODownloadMode",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": "Less background upload bandwidth",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "winutil",
+      "win11debloat",
+      "privacy",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "net-ntp-pool",
+    "category": "network",
+    "description": "Sync W32Time from pool.ntp.org (skip on domain-joined).",
+    "implementation": {
+      "type": "command",
+      "run": "w32tm /config /syncfromflags:manual /manualpeerlist:'0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org' /update; w32tm /resync",
+      "undo": "w32tm /config /syncfromflags:manual /manualpeerlist:'time.windows.com,0x9' /update; w32tm /resync"
+    },
+    "revert": "w32tm /config /syncfromflags:manual /manualpeerlist:'time.windows.com,0x9' /update; w32tm /resync",
+    "risk": "safe",
+    "breaks": "Do not apply on domain-joined machines",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/misc/config-time.yml",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/feature.json"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "net-ipv6-disable",
+    "category": "network",
+    "description": "Disable IPv6 components.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters",
+      "name": "DisabledComponents",
+      "valueType": "DWord",
+      "value": 255
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters",
+      "name": "DisabledComponents",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": "Some VPNs, Xbox networking; Microsoft advises against",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "net-teredo-disable",
+    "category": "network",
+    "description": "Disable Teredo.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\TCPIP\\v6Transition",
+      "name": "Teredo_State",
+      "valueType": "String",
+      "value": "Disabled"
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\TCPIP\\v6Transition",
+      "name": "Teredo_State",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "breaks-features",
+    "breaks": "Some Xbox features, DO peering",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil",
+      "privacy"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "aggressive",
+    "verification": "from-notes"
+  },
+  {
+    "id": "net-ncsi-active-probe-off",
+    "category": "network",
+    "description": "Disable NCSI active probe.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\NetworkConnectivityStatusIndicator",
+      "name": "NoActiveProbe",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\NetworkConnectivityStatusIndicator",
+      "name": "NoActiveProbe",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": "Captive portal detection misreports",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "net-maps-autoupdate-off",
+    "category": "network",
+    "description": "Stop automatic maps data download.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Maps",
+      "name": "AutoDownloadAndUpdateMapData",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Maps",
+      "name": "AutoDownloadAndUpdateMapData",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "net-device-metadata-off",
+    "category": "network",
+    "description": "Prevent device metadata retrieval from network.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Device Metadata",
+      "name": "PreventDeviceMetadataFromNetwork",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Device Metadata",
+      "name": "PreventDeviceMetadataFromNetwork",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "net-smb-anon-restrict",
+    "category": "network",
+    "description": "Restrict anonymous SAM/share enumeration; disable SMB client bandwidth throttling.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+          "name": "RestrictAnonymous",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+          "name": "RestrictAnonymousSAM",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "command",
+          "run": "Set-SmbClientConfiguration -EnableBandwidthThrottling $false -Force",
+          "undo": "Set-SmbClientConfiguration -EnableBandwidthThrottling $true -Force"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+          "name": "RestrictAnonymous",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+          "name": "RestrictAnonymousSAM",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        "Set-SmbClientConfiguration -EnableBandwidthThrottling $true -Force"
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "net-tcp-bbr2",
+    "category": "network",
+    "description": "BBRv2 congestion control (unsupported / unverified).",
+    "implementation": {
+      "type": "command",
+      "run": "netsh int tcp set supplemental template=internet congestionprovider=bbr2",
+      "undo": "netsh int tcp set supplemental template=internet congestionprovider=cubic"
+    },
+    "revert": "netsh int tcp set supplemental template=internet congestionprovider=cubic",
+    "risk": "moderate",
+    "breaks": "Not officially supported",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://github.com/meetrevision/playbook/releases/tag/23.04"
+    ],
+    "preset": "balanced",
+    "verification": "command-unverified"
+  },
+  {
+    "id": "net-hosts-adobe-block",
+    "category": "network",
+    "description": "Append marked block of Adobe domains to hosts (domain list must be supplied).",
+    "implementation": {
+      "type": "command",
+      "run": "# add BEGIN/END marked 0.0.0.0 block to hosts",
+      "undo": "# remove marked block"
+    },
+    "revert": "# remove marked block",
+    "risk": "moderate",
+    "breaks": "Adobe licensing may fail; AV flags",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "balanced",
+    "verification": "list-missing"
+  },
+  {
+    "id": "ai-recall-disable",
+    "category": "components",
+    "description": "Disable Recall / AI data analysis snapshots by policy (+ optional feature).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI",
+          "name": "DisableAIDataAnalysis",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI",
+          "name": "AllowRecallEnablement",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI",
+          "name": "TurnOffSavingSnapshots",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsAI",
+          "name": "DisableAIDataAnalysis",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "command",
+          "run": "Disable-WindowsOptionalFeature -Online -FeatureName Recall -NoRestart",
+          "undo": "Enable-WindowsOptionalFeature -Online -FeatureName Recall"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI",
+          "name": "DisableAIDataAnalysis",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI",
+          "name": "AllowRecallEnablement",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI",
+          "name": "TurnOffSavingSnapshots",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsAI",
+          "name": "DisableAIDataAnalysis",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        "Enable-WindowsOptionalFeature -Online -FeatureName Recall"
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": "Avoids snapshot disk/CPU use on Copilot+ PCs",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "tiny11",
+      "winutil",
+      "win11debloat",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/Regfiles/Disable_AI_Recall.reg",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://revi.cc/docs/features"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "ai-copilot-disable",
+    "category": "components",
+    "description": "Disable Windows Copilot by policy, hide taskbar button, remove Copilot app.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsCopilot",
+          "name": "TurnOffWindowsCopilot",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsCopilot",
+          "name": "TurnOffWindowsCopilot",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "name": "ShowCopilotButton",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "appx",
+          "names": [
+            "Microsoft.Copilot*",
+            "Microsoft.Windows.Copilot"
+          ],
+          "removeProvisioned": true
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsCopilot",
+          "name": "TurnOffWindowsCopilot",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsCopilot",
+          "name": "TurnOffWindowsCopilot",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "name": "ShowCopilotButton",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "appx",
+          "names": [
+            "Microsoft.Copilot*",
+            "Microsoft.Windows.Copilot"
+          ],
+          "action": "reinstall",
+          "how": "winget/Store, or Add-AppxPackage -Register saved InstallLocation manifest"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "tiny11",
+      "win11debloat",
+      "perf-evidence",
+      "revios"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/Regfiles/Disable_Copilot.reg",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "ai-click-to-do-off",
+    "category": "components",
+    "description": "Disable Click to Do.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI",
+      "name": "DisableClickToDo",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI",
+      "name": "DisableClickToDo",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "win11debloat",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://github.com/Raphire/Win11Debloat"
+    ],
+    "preset": "safe",
+    "verification": "value-from-platform-knowledge"
+  },
+  {
+    "id": "comp-onedrive-uninstall",
+    "category": "components",
+    "description": "Uninstall OneDrive (only when no account configured; undo Known Folder Move first).",
+    "implementation": {
+      "type": "command",
+      "run": "Stop-Process -Name OneDrive -Force -EA SilentlyContinue; & \"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\" /uninstall  # or System32",
+      "undo": "winget install Microsoft.OneDrive"
+    },
+    "revert": "winget install Microsoft.OneDrive",
+    "risk": "moderate",
+    "breaks": "Desktop/Documents redirection left pointing at OneDrive; data loss risk",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "tiny11",
+      "winutil",
+      "privacy",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://docs.atlasos.net/faq/install-faq/removed-features/",
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "comp-onedrive-sync-policy",
+    "category": "components",
+    "description": "Disable OneDrive file sync by policy.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\OneDrive",
+      "name": "DisableFileSyncNGSC",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\OneDrive",
+      "name": "DisableFileSyncNGSC",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "breaks-features",
+    "breaks": "Sync and Known Folder Backup stop",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "tiny11",
+      "privacy",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "aggressive",
+    "verification": "from-notes"
+  },
+  {
+    "id": "comp-teams-install-block",
+    "category": "components",
+    "description": "Block consumer Teams auto-install.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Teams",
+      "name": "DisableInstallation",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Teams",
+      "name": "DisableInstallation",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "tiny11"
+    ],
+    "evidence": [
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "comp-optional-features-legacy",
+    "category": "components",
+    "description": "Remove IE, Steps Recorder, legacy Media Player, WordPad, Math Recognizer (resolve exact names first).",
+    "implementation": {
+      "type": "command",
+      "run": "Get-WindowsCapability -Online | ? Name -match 'StepsRecorder|MathRecognizer|WordPad' | Remove-WindowsCapability -Online; Disable-WindowsOptionalFeature -Online -FeatureName Internet-Explorer-Optional-amd64,WindowsMediaPlayer -NoRestart",
+      "undo": "Add-WindowsCapability / Enable-WindowsOptionalFeature with same names"
+    },
+    "revert": "Add-WindowsCapability / Enable-WindowsOptionalFeature with same names",
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "tiny11",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://docs.atlasos.net/faq/install-faq/removed-features/",
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "comp-edge-removal-external",
+    "category": "edge-browser",
+    "description": "Force-remove Edge via external tool (EdgeRemover/--force-uninstall); fragile, unsupported outside EEA.",
+    "implementation": {
+      "type": "external",
+      "tool": "EdgeRemover or Edge setup --uninstall --system-level --force-uninstall",
+      "note": "do not ship by default"
+    },
+    "revert": {
+      "type": "command",
+      "run": "winget install Microsoft.Edge"
+    },
+    "risk": "breaks-features",
+    "breaks": "WebView2 apps, Widgets, Search, Office features; Windows Update may reinstall",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "winutil",
+      "win11debloat"
+    ],
+    "evidence": [
+      "https://docs.atlasos.net/faq/install-faq/removed-features/",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "aggressive",
+    "verification": "external-tool"
+  },
+  {
+    "id": "comp-store-apps-disable",
+    "category": "components",
+    "description": "Disable Store apps / auto-download.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\WindowsStore",
+          "name": "DisableStoreApps",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\WindowsStore",
+          "name": "AutoDownload",
+          "valueType": "DWord",
+          "value": 2
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\WindowsStore",
+          "name": "DisableStoreApps",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\WindowsStore",
+          "name": "AutoDownload",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "breaks-features",
+    "breaks": "App installs and updates",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "aggressive",
+    "verification": "path-assumed"
+  },
+  {
+    "id": "edge-debloat-policies",
+    "category": "edge-browser",
+    "description": "Edge policy debloat: sidebar, shopping assistant, startup boost, background mode, metrics, personalization reporting.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "HubsSidebarEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "EdgeShoppingAssistantEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "StartupBoostEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "BackgroundModeEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "MetricsReportingEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "PersonalizationReportingEnabled",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "HubsSidebarEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "EdgeShoppingAssistantEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "StartupBoostEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "BackgroundModeEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "MetricsReportingEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "PersonalizationReportingEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": "Fewer Edge background processes",
+    "post_install_possible": true,
+    "projects": [
+      "tiny11",
+      "winutil",
+      "win11debloat",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "edge-privacy-policies",
+    "category": "edge-browser",
+    "description": "Edge privacy policies: no search suggestions/autofill, DNT, hide first run.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "SearchSuggestEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "AutofillAddressEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "AutofillCreditCardEnabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "ConfigureDoNotTrack",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "HideFirstRunExperience",
+          "valueType": "DWord",
+          "value": 1
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "SearchSuggestEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "AutofillAddressEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "AutofillCreditCardEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "ConfigureDoNotTrack",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "HideFirstRunExperience",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy",
+      "win11debloat"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "edge-password-manager-off",
+    "category": "edge-browser",
+    "description": "Disable Edge password manager.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+      "name": "PasswordManagerEnabled",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+      "name": "PasswordManagerEnabled",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "breaks-features",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "aggressive",
+    "verification": "from-notes"
+  },
+  {
+    "id": "edge-smartscreen-off",
+    "category": "edge-browser",
+    "description": "Disable Edge SmartScreen.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+      "name": "SmartScreenEnabled",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+      "name": "SmartScreenEnabled",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "reduces-security",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy",
+      "revios"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://github.com/meetrevision/packages/blob/main/defender-removal-amd64.yaml"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "appx-consumer-bloat",
+    "category": "appx",
+    "description": "Remove consumer/promo AppX + provisioned copies (allowlist; never Store, App Installer, Security, shell, runtimes).",
+    "implementation": {
+      "type": "appx",
+      "names": [
+        "Clipchamp.Clipchamp",
+        "Microsoft.BingNews",
+        "Microsoft.BingWeather",
+        "Microsoft.BingSearch",
+        "Microsoft.GetHelp",
+        "Microsoft.Getstarted",
+        "Microsoft.MicrosoftOfficeHub",
+        "Microsoft.MicrosoftSolitaireCollection",
+        "Microsoft.MixedReality.Portal",
+        "Microsoft.Microsoft3DViewer",
+        "Microsoft.SkypeApp",
+        "Microsoft.PowerAutomateDesktop",
+        "Microsoft.Todos",
+        "Microsoft.WindowsFeedbackHub",
+        "Microsoft.ZuneMusic",
+        "Microsoft.ZuneVideo",
+        "Microsoft.549981C3F5F10",
+        "Microsoft.Windows.DevHome",
+        "MicrosoftCorporationII.MicrosoftFamily",
+        "Microsoft.People",
+        "Microsoft.Wallet",
+        "Microsoft.Office.OneNote",
+        "MicrosoftTeams",
+        "MSTeams",
+        "Disney.37853FC22B2CE",
+        "SpotifyAB.SpotifyMusic",
+        "Microsoft.OutlookForWindows"
+      ],
+      "removeProvisioned": true
+    },
+    "revert": {
+      "type": "appx",
+      "names": [
+        "Clipchamp.Clipchamp",
+        "Microsoft.BingNews",
+        "Microsoft.BingWeather",
+        "Microsoft.BingSearch",
+        "Microsoft.GetHelp",
+        "Microsoft.Getstarted",
+        "Microsoft.MicrosoftOfficeHub",
+        "Microsoft.MicrosoftSolitaireCollection",
+        "Microsoft.MixedReality.Portal",
+        "Microsoft.Microsoft3DViewer",
+        "Microsoft.SkypeApp",
+        "Microsoft.PowerAutomateDesktop",
+        "Microsoft.Todos",
+        "Microsoft.WindowsFeedbackHub",
+        "Microsoft.ZuneMusic",
+        "Microsoft.ZuneVideo",
+        "Microsoft.549981C3F5F10",
+        "Microsoft.Windows.DevHome",
+        "MicrosoftCorporationII.MicrosoftFamily",
+        "Microsoft.People",
+        "Microsoft.Wallet",
+        "Microsoft.Office.OneNote",
+        "MicrosoftTeams",
+        "MSTeams",
+        "Disney.37853FC22B2CE",
+        "SpotifyAB.SpotifyMusic",
+        "Microsoft.OutlookForWindows"
+      ],
+      "action": "reinstall",
+      "how": "winget/Store, or Add-AppxPackage -Register saved InstallLocation manifest"
+    },
+    "risk": "moderate",
+    "breaks": "Some apps return after updates; Atlas Deprovisioned keys may block reinstall (delete per-package key)",
+    "ram_or_perf_effect": "Mostly disk; Yahoo test found idle RAM barely changes",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "tiny11",
+      "winutil",
+      "win11debloat",
+      "privacy",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/appx.yml",
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://github.com/raphire/Win11Debloat/wiki/App-Removal",
+      "https://tech.yahoo.com/computing/articles/tested-4-windows-debloating-tools-100000336.html",
+      "https://thefilibusterblog.com/my-experience-debloating-windows-11-3-unexpected-drawbacks-revealed/"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "appx-widgets-remove",
+    "category": "appx",
+    "description": "Remove Widgets platform packages (policy Dsh AllowNewsAndInterests=0 is the reversible alternative).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "appx",
+          "names": [
+            "Microsoft.WidgetsPlatformRuntime",
+            "MicrosoftWindows.Client.WebExperience"
+          ],
+          "removeProvisioned": true
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Dsh",
+          "name": "AllowNewsAndInterests",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "appx",
+          "names": [
+            "Microsoft.WidgetsPlatformRuntime",
+            "MicrosoftWindows.Client.WebExperience"
+          ],
+          "action": "reinstall",
+          "how": "winget/Store, or Add-AppxPackage -Register saved InstallLocation manifest"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Dsh",
+          "name": "AllowNewsAndInterests",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "StartExperiencesApp removal can alter Start; Widgets removal touches shared packages",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "winutil",
+      "atlas",
+      "win11debloat"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "appx-xbox-gaming",
+    "category": "appx",
+    "description": "Remove Xbox / gaming packages.",
+    "implementation": {
+      "type": "appx",
+      "names": [
+        "Microsoft.GamingApp",
+        "Microsoft.XboxApp",
+        "Microsoft.Xbox.TCUI",
+        "Microsoft.XboxGameOverlay",
+        "Microsoft.XboxGamingOverlay",
+        "Microsoft.XboxIdentityProvider",
+        "Microsoft.XboxSpeechToTextOverlay"
+      ],
+      "removeProvisioned": true
+    },
+    "revert": {
+      "type": "appx",
+      "names": [
+        "Microsoft.GamingApp",
+        "Microsoft.XboxApp",
+        "Microsoft.Xbox.TCUI",
+        "Microsoft.XboxGameOverlay",
+        "Microsoft.XboxGamingOverlay",
+        "Microsoft.XboxIdentityProvider",
+        "Microsoft.XboxSpeechToTextOverlay"
+      ],
+      "action": "reinstall",
+      "how": "winget/Store, or Add-AppxPackage -Register saved InstallLocation manifest"
+    },
+    "risk": "breaks-features",
+    "breaks": "Game Bar, Xbox sign-in in games, Game Pass; ReviOS keeps Xbox by default",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "tiny11",
+      "atlas",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/appx.yml"
+    ],
+    "preset": "aggressive",
+    "verification": "from-notes"
+  },
+  {
+    "id": "appx-useful-tools-optional",
+    "category": "appx",
+    "description": "Opt-in removal of utility apps: Paint, Terminal, Camera, Sticky Notes, Alarms, Sound Recorder, Quick Assist, Snipping Tool, Calculator.",
+    "implementation": {
+      "type": "appx",
+      "names": [
+        "Microsoft.MSPaint",
+        "Microsoft.WindowsTerminal",
+        "Microsoft.WindowsCamera",
+        "Microsoft.MicrosoftStickyNotes",
+        "Microsoft.WindowsAlarms",
+        "Microsoft.WindowsSoundRecorder",
+        "MicrosoftCorporationII.QuickAssist",
+        "Microsoft.ScreenSketch"
+      ],
+      "removeProvisioned": true
+    },
+    "revert": {
+      "type": "appx",
+      "names": [
+        "Microsoft.MSPaint",
+        "Microsoft.WindowsTerminal",
+        "Microsoft.WindowsCamera",
+        "Microsoft.MicrosoftStickyNotes",
+        "Microsoft.WindowsAlarms",
+        "Microsoft.WindowsSoundRecorder",
+        "MicrosoftCorporationII.QuickAssist",
+        "Microsoft.ScreenSketch"
+      ],
+      "action": "reinstall",
+      "how": "winget/Store, or Add-AppxPackage -Register saved InstallLocation manifest"
+    },
+    "risk": "moderate",
+    "breaks": "Removes useful tools; never remove Terminal if running from it",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "tiny11",
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/appx.yml",
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "appx-oem-bloat",
+    "category": "appx",
+    "description": "Remove OEM packages (HP, Lenovo, Dell).",
+    "implementation": {
+      "type": "command",
+      "run": "Get-AppxPackage -AllUsers | ? Name -match '^(AD2F1837\\.HP|E046963F\\.LenovoCompanion|LenovoCompanyLimited\\.LenovoVantageService|DellInc\\.)' | Remove-AppxPackage -AllUsers",
+      "undo": "Reinstall from Store/OEM"
+    },
+    "revert": "Reinstall from Store/OEM",
+    "risk": "moderate",
+    "breaks": "OEM driver/firmware utilities",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "tiny11",
+      "win11debloat"
+    ],
+    "evidence": [
+      "https://github.com/raphire/Win11Debloat/wiki/App-Removal"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "appx-crossdevice-yourphone",
+    "category": "appx",
+    "description": "Remove Phone Link / CrossDevice (use separate step; do not bulk remove).",
+    "implementation": {
+      "type": "appx",
+      "names": [
+        "Microsoft.YourPhone",
+        "Microsoft.Windows.CrossDevice"
+      ],
+      "removeProvisioned": true
+    },
+    "revert": {
+      "type": "appx",
+      "names": [
+        "Microsoft.YourPhone",
+        "Microsoft.Windows.CrossDevice"
+      ],
+      "action": "reinstall",
+      "how": "winget/Store, or Add-AppxPackage -Register saved InstallLocation manifest"
+    },
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "tiny11",
+      "win11debloat"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/atlas/appx.yml"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "ui-classic-context-menu",
+    "category": "ui-shell",
+    "description": "Restore Windows 10 right-click menu (restart Explorer).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32",
+      "name": "(Default)",
+      "valueType": "String",
+      "value": ""
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}",
+      "action": "deleteKey"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "winutil",
+      "win11debloat"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "ui-dark-mode-transparency",
+    "category": "ui-shell",
+    "description": "Dark mode, transparency off.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "name": "AppsUseLightTheme",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "name": "SystemUsesLightTheme",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "name": "EnableTransparency",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "name": "AppsUseLightTheme",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "name": "SystemUsesLightTheme",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "name": "EnableTransparency",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "win11debloat"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://github.com/Raphire/Win11Debloat"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "ui-end-task-taskbar",
+    "category": "ui-shell",
+    "description": "Add End Task to taskbar menu.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings",
+      "name": "TaskbarEndTask",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings",
+      "name": "TaskbarEndTask",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil",
+      "win11debloat"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://github.com/Raphire/Win11Debloat"
+    ],
+    "preset": "safe",
+    "verification": "path-from-memory"
+  },
+  {
+    "id": "ui-sticky-keys-off",
+    "category": "ui-shell",
+    "description": "Disable 5x-Shift Sticky Keys popup.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKCU:\\Control Panel\\Accessibility\\StickyKeys",
+      "name": "Flags",
+      "valueType": "String",
+      "value": "506"
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKCU:\\Control Panel\\Accessibility\\StickyKeys",
+      "name": "Flags",
+      "action": "restoreSnapshot",
+      "stockDefaultHint": "510"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "ui-explorer-show-extensions",
+    "category": "ui-shell",
+    "description": "Show file extensions.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+      "name": "HideFileExt",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+      "name": "HideFileExt",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil",
+      "win11debloat"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://github.com/Raphire/Win11Debloat"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "ui-qol-widgets-chat-policy",
+    "category": "ui-shell",
+    "description": "Disable Windows Chat icon and Widgets (policy).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Dsh",
+          "name": "AllowNewsAndInterests",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Chat",
+          "name": "ChatIcon",
+          "valueType": "DWord",
+          "value": 3
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Feeds",
+          "name": "EnableFeeds",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Dsh",
+          "name": "AllowNewsAndInterests",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Chat",
+          "name": "ChatIcon",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Feeds",
+          "name": "EnableFeeds",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "privacy",
+      "revios"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "ui-start-clear-pins-policy",
+    "category": "ui-shell",
+    "description": "Empty Start pinned list.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\PolicyManager\\current\\device\\Start",
+      "name": "ConfigureStartPins",
+      "valueType": "String",
+      "value": "{\"pinnedList\":[{}]}"
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\PolicyManager\\current\\device\\Start",
+      "name": "ConfigureStartPins",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "tiny11",
+      "revios"
+    ],
+    "evidence": [
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1"
+    ],
+    "preset": "safe",
+    "verification": "path-unconfirmed"
+  },
+  {
+    "id": "ui-paint3d-context-removal",
+    "category": "ui-shell",
+    "description": "Remove 'Edit with Paint 3D' context entries.",
+    "implementation": {
+      "type": "command",
+      "run": "foreach($e in '.3mf','.bmp','.fbx','.gif','.jfif','.jpe','.jpeg','.jpg','.png','.tif','.tiff'){reg export then reg delete HKCR\\SystemFileAssociations\\$e\\Shell\\3D Edit}",
+      "undo": "reg import exported files"
+    },
+    "revert": "reg import exported files",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/qol/explorer/remove-context-menus/paint-3D.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "wu-defer-feature-updates",
+    "category": "updates",
+    "description": "Defer feature updates 30-365 days; quality/security updates keep flowing.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate",
+          "name": "DeferFeatureUpdates",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate",
+          "name": "DeferFeatureUpdatesPeriodInDays",
+          "valueType": "DWord",
+          "value": 30
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate",
+          "name": "DeferFeatureUpdates",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate",
+          "name": "DeferFeatureUpdatesPeriodInDays",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "perf-evidence",
+      "winutil",
+      "win11debloat"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "wu-no-auto-reboot-logged-on",
+    "category": "updates",
+    "description": "No forced reboot while a user is signed in.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+      "name": "NoAutoRebootWithLoggedOnUsers",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+      "name": "NoAutoRebootWithLoggedOnUsers",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": "Patches stay pending until manual reboot",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas",
+      "win11debloat",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "wu-exclude-driver-updates",
+    "category": "updates",
+    "description": "Block drivers from WU quality updates.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate",
+      "name": "ExcludeWUDriversInQualityUpdate",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate",
+      "name": "ExcludeWUDriversInQualityUpdate",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": "Missed vendor drivers",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "wu-store-autoupdate-off",
+    "category": "updates",
+    "description": "Disable Store auto-download and app archiving.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\WindowsStore",
+          "name": "AutoDownload",
+          "valueType": "DWord",
+          "value": 2
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Appx",
+          "name": "AllowAutomaticAppArchiving",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\WindowsStore",
+          "name": "AutoDownload",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Appx",
+          "name": "AllowAutomaticAppArchiving",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "moderate",
+    "breaks": "Store apps stop auto-updating",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "privacy"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "wu-disable-auto-updates-policy",
+    "category": "updates",
+    "description": "NoAutoUpdate policy / pause updates (opt-in only).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+      "name": "NoAutoUpdate",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+      "name": "NoAutoUpdate",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "reduces-security",
+    "breaks": "No security patches until reverted; recovery issues reported after Atlas",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "winutil",
+      "win11debloat",
+      "tiny11"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://mintlify.wiki/Atlas-OS/Atlas/features/security",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json",
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "wu-wuauserv-disable",
+    "category": "updates",
+    "description": "Disable wuauserv/UsoSvc (never WaaSMedicSvc).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "wuauserv",
+          "startType": "Disabled",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "UsoSvc",
+          "startType": "Disabled",
+          "stockDefaultHint": "Automatic delayed"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "service",
+          "name": "wuauserv",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Manual (3)"
+        },
+        {
+          "type": "service",
+          "name": "UsoSvc",
+          "startType": "restoreSnapshot",
+          "stockDefaultHint": "Automatic delayed"
+        }
+      ]
+    },
+    "risk": "reduces-security",
+    "breaks": "No updates; leaving WaaSMedicSvc disabled breaks Store/AppX",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "tiny11",
+      "winutil",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-defender-disable-policy",
+    "category": "security",
+    "description": "DisableAntiSpyware policy, wscsvc Start=4 (Tamper Protection must be off first; do not bypass).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\Software\\Policies\\Microsoft\\Windows Defender",
+          "name": "DisableAntiSpyware",
+          "valueType": "DWord",
+          "value": 1
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\wscsvc",
+          "name": "Start",
+          "valueType": "DWord",
+          "value": 4
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\Software\\Policies\\Microsoft\\Windows Defender",
+          "name": "DisableAntiSpyware",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\wscsvc",
+          "name": "Start",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "reduces-security",
+    "breaks": "No real-time protection; Defender re-enables on updates",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "tiny11",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://github.com/meetrevision/packages/blob/main/defender-removal-amd64.yaml",
+      "https://mintlify.wiki/Atlas-OS/Atlas/features/security",
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11Coremaker.ps1"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-smartscreen-off",
+    "category": "security",
+    "description": "Disable SmartScreen (system, Explorer, AppHost, Edge legacy).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "EnableSmartScreen",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+          "name": "SmartScreenEnabled",
+          "valueType": "String",
+          "value": "Off"
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "EnableSmartScreen",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+          "name": "SmartScreenEnabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "reduces-security",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "privacy",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://github.com/meetrevision/packages/blob/main/defender-removal-amd64.yaml",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-smart-app-control-off",
+    "category": "security",
+    "description": "Turn Smart App Control off. IRREVERSIBLE without reset.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\CI\\Policy",
+      "name": "VerifiedAndReputablePolicyState",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": "not reversible",
+    "risk": "reduces-security",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas"
+    ],
+    "evidence": [
+      "https://github.com/meetrevision/packages/blob/main/defender-removal-amd64.yaml",
+      "https://docs.atlasos.net/faq/install-faq/removed-features/"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-vbs-hvci-off",
+    "category": "security",
+    "description": "Disable VBS / Memory Integrity / Credential Guard (reboot). Windows may re-enable from Oct 2026.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity",
+          "name": "Enabled",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard",
+          "name": "EnableVirtualizationBasedSecurity",
+          "valueType": "DWord",
+          "value": 0
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+          "name": "LsaCfgFlags",
+          "valueType": "DWord",
+          "value": 0
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity",
+          "name": "Enabled",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard",
+          "name": "EnableVirtualizationBasedSecurity",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+          "name": "LsaCfgFlags",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "reduces-security",
+    "breaks": "Loses kernel code-integrity and driver defences",
+    "ram_or_perf_effect": "0% on Cinebench, roughly 7-15% on some older gaming PCs (secondhand)",
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "atlas",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/security/hardware-security/enable-virtualization-based-protection-of-code-integrity",
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/scripts/script-core-isolation.yml",
+      "https://revi.cc/docs/features"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-cpu-mitigations-off",
+    "category": "security",
+    "description": "Disable CPU/OS exploit mitigations.",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+          "name": "FeatureSettingsOverride",
+          "valueType": "DWord",
+          "value": 3
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+          "name": "FeatureSettingsOverrideMask",
+          "valueType": "DWord",
+          "value": 3
+        }
+      ]
+    },
+    "revert": {
+      "type": "multi",
+      "steps": [
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+          "name": "FeatureSettingsOverride",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        },
+        {
+          "type": "registry",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+          "name": "FeatureSettingsOverrideMask",
+          "action": "restoreSnapshot",
+          "ifAbsentBefore": "deleteValue"
+        }
+      ]
+    },
+    "risk": "reduces-security",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks/scripts/script-mitigations.yml"
+    ],
+    "preset": "never-default",
+    "verification": "values-inferred"
+  },
+  {
+    "id": "sec-uac-secure-desktop-off",
+    "category": "security",
+    "description": "No secure-desktop dimming for UAC prompts.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+      "name": "PromptOnSecureDesktop",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+      "name": "PromptOnSecureDesktop",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "reduces-security",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-bitlocker-prevent-auto-encryption",
+    "category": "security",
+    "description": "Prevent automatic device encryption (never decrypt existing drives).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\BitLocker",
+      "name": "PreventDeviceEncryption",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\BitLocker",
+      "name": "PreventDeviceEncryption",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "reduces-security",
+    "breaks": "No silent encryption or key escrow",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "tiny11",
+      "win11debloat",
+      "perf-evidence"
+    ],
+    "evidence": [
+      "https://github.com/ntdevlabs/tiny11builder/blob/main/tiny11maker.ps1",
+      "https://raw.githubusercontent.com/Raphire/Win11Debloat/master/README.md"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-bitlocker-decrypt",
+    "category": "security",
+    "description": "Decrypt system drive.",
+    "implementation": {
+      "type": "command",
+      "run": "Disable-BitLocker -MountPoint $env:SystemDrive",
+      "undo": "Enable-BitLocker (re-specify protectors)"
+    },
+    "revert": "Enable-BitLocker (re-specify protectors)",
+    "risk": "reduces-security",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-root-cert-autoupdate-off",
+    "category": "security",
+    "description": "Disable automatic root certificate update.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\SystemCertificates\\AuthRoot",
+      "name": "DisableRootAutoUpdate",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\SystemCertificates\\AuthRoot",
+      "name": "DisableRootAutoUpdate",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "reduces-security",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "privacy"
+    ],
+    "evidence": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ],
+    "preset": "never-default",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-wpbt-disable",
+    "category": "security",
+    "description": "Disable Windows Platform Binary Table execution.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager",
+      "name": "DisableWpbtExecution",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager",
+      "name": "DisableWpbtExecution",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": "OEM firmware-injected tools stop auto-running",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "winutil"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-remote-assistance-off",
+    "category": "security",
+    "description": "Disable Remote Assistance.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Remote Assistance",
+      "name": "fAllowToGetHelp",
+      "valueType": "DWord",
+      "value": 0
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Remote Assistance",
+      "name": "fAllowToGetHelp",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-msaccount-block",
+    "category": "security",
+    "description": "Block Microsoft account sign-in.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+      "name": "NoConnectedUser",
+      "valueType": "DWord",
+      "value": 3
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+      "name": "NoConnectedUser",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "breaks-features",
+    "breaks": "Store, Xbox, OneDrive, anything needing MSA",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/tweaks.yml",
+      "https://docs.atlasos.net/faq/install-faq/removed-features/"
+    ],
+    "preset": "aggressive",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-linked-connections",
+    "category": "security",
+    "description": "EnableLinkedConnections for mapped drives under elevation.",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+      "name": "EnableLinkedConnections",
+      "valueType": "DWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+      "name": "EnableLinkedConnections",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "sec-powershell-remotesigned",
+    "category": "security",
+    "description": "Execution policy RemoteSigned (LocalMachine).",
+    "implementation": {
+      "type": "command",
+      "run": "Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force",
+      "undo": "Set-ExecutionPolicy <recorded> -Scope LocalMachine"
+    },
+    "revert": "Set-ExecutionPolicy <recorded> -Scope LocalMachine",
+    "risk": "safe",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "atlas"
+    ],
+    "evidence": [
+      "https://raw.githubusercontent.com/Atlas-OS/Atlas/main/src/playbook/Configuration/custom.yml"
+    ],
+    "preset": "safe",
+    "verification": "from-notes"
+  },
+  {
+    "id": "misc-realtime-is-universal",
+    "category": "other",
+    "description": "Hardware clock is UTC (dual boot only).",
+    "implementation": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation",
+      "name": "RealTimeIsUniversal",
+      "valueType": "QWord",
+      "value": 1
+    },
+    "revert": {
+      "type": "registry",
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation",
+      "name": "RealTimeIsUniversal",
+      "action": "restoreSnapshot",
+      "ifAbsentBefore": "deleteValue"
+    },
+    "risk": "moderate",
+    "breaks": "Clock offset on Windows-only systems",
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios",
+      "winutil"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features",
+      "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/config/tweaks.json"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  },
+  {
+    "id": "misc-sudo-inline",
+    "category": "other",
+    "description": "Enable inline sudo (24H2+).",
+    "implementation": {
+      "type": "command",
+      "run": "sudo config --enable normal",
+      "undo": "sudo config --enable disable"
+    },
+    "revert": "sudo config --enable disable",
+    "risk": "moderate",
+    "breaks": null,
+    "ram_or_perf_effect": null,
+    "post_install_possible": true,
+    "projects": [
+      "revios"
+    ],
+    "evidence": [
+      "https://revi.cc/docs/features"
+    ],
+    "preset": "balanced",
+    "verification": "from-notes"
+  }
+]

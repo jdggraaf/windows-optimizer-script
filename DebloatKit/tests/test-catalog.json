@@ -1,0 +1,61 @@
+[
+  {
+    "id": "test-existing-dword",
+    "category": "other",
+    "description": "Changes a value that already exists (undo must restore 5).",
+    "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest", "name": "Existing", "valueType": "DWord", "value": 1 },
+    "revert": "snapshot",
+    "risk": "safe",
+    "preset": "safe"
+  },
+  {
+    "id": "test-new-value",
+    "category": "other",
+    "description": "Creates a value that did not exist (undo must delete it).",
+    "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest", "name": "Created", "valueType": "DWord", "value": 0 },
+    "revert": "snapshot",
+    "risk": "safe",
+    "preset": "safe"
+  },
+  {
+    "id": "test-new-nested-key",
+    "category": "other",
+    "description": "Creates two new nested keys and a string (undo must remove both keys).",
+    "implementation": {
+      "type": "multi",
+      "steps": [
+        { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\Sub\\Deep", "name": "Text", "valueType": "String", "value": "hello" }
+      ]
+    },
+    "revert": "snapshot",
+    "risk": "safe",
+    "preset": "safe"
+  },
+  {
+    "id": "test-already-set",
+    "category": "other",
+    "description": "Already at the desired value (must be reported InSync and not snapshotted).",
+    "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest", "name": "AlreadyOk", "valueType": "DWord", "value": 7 },
+    "revert": "snapshot",
+    "risk": "safe",
+    "preset": "safe"
+  },
+  {
+    "id": "test-unsupported-command",
+    "category": "other",
+    "description": "Free-form command that must be skipped, never executed.",
+    "implementation": { "type": "command", "run": "New-Item -Path HKCU:\\Software\\DebloatKitTest -Name ShouldNotExist", "undo": null },
+    "revert": "not reversible",
+    "risk": "safe",
+    "preset": "safe"
+  },
+  {
+    "id": "test-balanced-ignored",
+    "category": "other",
+    "description": "Not in the safe preset (must be ignored).",
+    "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest", "name": "Balanced", "valueType": "DWord", "value": 1 },
+    "revert": "snapshot",
+    "risk": "moderate",
+    "preset": "balanced"
+  }
+]
