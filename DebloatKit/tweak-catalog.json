@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026.10.17.3",
+  "catalogVersion": "2026.10.18.1",
   "migrations": [
     {
       "id": "svchost-split-forced",
@@ -7774,6 +7774,925 @@
       "tradeoff": "No measurable gain. Never apply on an Intune or other MDM-managed PC.",
       "managedDeviceImpact": "Breaks MDM push routing, so Intune can no longer nudge the device to sync.",
       "managedSkip": "dmwappushservice routes MDM push messages; disabling it breaks Intune sync."
+    },
+    {
+      "id": "priv-language-list-optout",
+      "category": "telemetry-privacy",
+      "description": "Stop websites reading the Windows language list (HttpAcceptLanguageOptOut).",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Control Panel\\International\\User Profile",
+        "name": "HttpAcceptLanguageOptOut",
+        "valueType": "DWord",
+        "value": 1
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Turns off \"Let websites show me locally relevant content by accessing my language list\" in Settings > Privacy > General. Websites and apps then see only the primary language, which removes a small fingerprinting signal. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Privacy-minded users",
+      "tradeoff": "Sites that pick a language from the full list may fall back to the first language.",
+      "notes": "Sophia function: LanguageListAccess -Disable"
+    },
+    {
+      "id": "ui-scoobe-setup-nag-off",
+      "category": "ui-shell",
+      "description": "Stop the \"Let's finish setting up your device\" screen (SCOOBE) after updates.",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\UserProfileEngagement",
+        "name": "ScoobeSystemSettingEnabled",
+        "valueType": "DWord",
+        "value": 0
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Turns off Settings > System > Notifications > \"Suggest ways to get the most out of Windows and finish setting up this device\". This is the full-screen nag after feature updates that pushes Microsoft 365, OneDrive backup and Game Pass. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Anyone who is tired of the post-update setup screen",
+      "tradeoff": "None functional; you no longer get the setup reminders.",
+      "notes": "Sophia function: WhatsNewInWindows -Disable"
+    },
+    {
+      "id": "ui-explorer-sync-provider-ads-off",
+      "category": "ui-shell",
+      "description": "Hide sync-provider notifications (OneDrive and Microsoft 365 promotions) in File Explorer.",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "ShowSyncProviderNotifications",
+        "valueType": "DWord",
+        "value": 0
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Turns off File Explorer > Options > View > \"Show sync provider notifications\", which is where the OneDrive storage and Microsoft 365 banners at the top of Explorer come from. OneDrive itself keeps syncing. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Anyone who sees OneDrive or Microsoft 365 banners in Explorer",
+      "tradeoff": "You also miss genuine sync-provider notices in Explorer (OneDrive still shows them in its own tray icon).",
+      "notes": "Sophia function: OneDriveFileExplorerAd -Hide"
+    },
+    {
+      "id": "start-account-notifications-off",
+      "category": "ui-shell",
+      "description": "Hide Microsoft account notifications (badges and prompts) on the Start menu.",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "Start_AccountNotifications",
+        "valueType": "DWord",
+        "value": 0
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Turns off Settings > Personalization > Start > \"Show account-related notifications\": the badge on your profile picture in Start that pushes backup, Microsoft 365 or account completion. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Anyone who wants a quiet Start menu",
+      "tradeoff": "You may miss a real account warning (for example an expired password) in Start; Settings still shows it.",
+      "notes": "Sophia function: StartAccountNotifications -Hide"
+    },
+    {
+      "id": "start-iris-recommendations-off",
+      "category": "ui-shell",
+      "description": "Hide tips, shortcuts and new-app recommendations in Start (Start_IrisRecommendations).",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "Start_IrisRecommendations",
+        "valueType": "DWord",
+        "value": 0
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Turns off Settings > Personalization > Start > \"Show recommendations for tips, shortcuts, new apps, and more\". It is the user-level setting next to the HideRecommendedSection policy in start-hide-recommended-section, and it works on editions where that policy is not honoured. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Anyone who wants Start without promotions",
+      "tradeoff": "None functional. Recent files in Start are not affected by this value.",
+      "notes": "Sophia function: StartRecommendationsTips -Hide"
+    },
+    {
+      "id": "search-highlights-off",
+      "category": "ui-shell",
+      "description": "Turn off search highlights (Bing trending content and doodles in the search box and Start search).",
+      "implementation": {
+        "type": "multi",
+        "steps": [
+          {
+            "type": "registry",
+            "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+            "name": "EnableDynamicContentInWSB",
+            "valueType": "DWord",
+            "value": 0
+          },
+          {
+            "type": "registry",
+            "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\SearchSettings",
+            "name": "IsDynamicSearchBoxEnabled",
+            "valueType": "DWord",
+            "value": 0
+          }
+        ]
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1",
+        "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-search#allowsearchhighlights"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Uses the documented \"Allow search highlights\" policy (EnableDynamicContentInWSB = 0) plus the matching user setting, so Windows Search stops loading trending web content and illustrations. Sophia sets only the user value and removes the policy; the policy is the more durable route on an unmanaged PC. It may already be off when priv-search-cortana-bing-off is applied. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Privacy-minded users; anyone who finds the search box distracting",
+      "tradeoff": "No trending or daily content in search. Local search is unchanged.",
+      "managedDeviceImpact": "Overrides a Search policy your admin may set; on a managed device the policy part can be replaced at the next sync.",
+      "policyDocumented": true,
+      "notes": "Sophia function: SearchHighlights -Hide"
+    },
+    {
+      "id": "ui-f1-help-off",
+      "category": "ui-shell",
+      "description": "Stop F1 opening a Bing search in Edge (\"How to get help in Windows\").",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Software\\Classes\\Typelib\\{8cec5860-07a1-11d9-b15e-000d56bfe6ee}\\1.0\\0\\win64",
+        "name": "(Default)",
+        "valueType": "String",
+        "value": ""
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Registers an empty per-user override of the HelpPane type library, so pressing F1 on the desktop or in Explorer no longer launches Edge with a Bing \"get help\" search. F1 inside applications keeps working. Same technique as ui-classic-context-menu (a per-user class override). The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Anyone who hits F1 by accident (laptops with Fn-row keys, gamers)",
+      "tradeoff": "The Windows F1 help shortcut is gone; use the Get Help app instead. A future update may change the HelpPane registration.",
+      "notes": "Sophia function: F1HelpPage -Disable"
+    },
+    {
+      "id": "ui-shortcut-suffix-off",
+      "category": "ui-shell",
+      "description": "Do not add \"- Shortcut\" to the name of new shortcuts.",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\NamingTemplates",
+        "name": "ShortcutNameTemplate",
+        "valueType": "String",
+        "value": "%s.lnk"
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "New shortcuts are named after their target without the \" - Shortcut\" suffix. Existing shortcuts keep their names. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Anyone who creates desktop shortcuts",
+      "tradeoff": "Shortcuts are harder to tell apart from the original by name alone (the arrow overlay stays).",
+      "notes": "Sophia function: ShortcutsSuffix -Disable"
+    },
+    {
+      "id": "ui-openwith-no-store",
+      "category": "ui-shell",
+      "description": "Remove \"Look for an app in the Microsoft Store\" from the Open with dialog.",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Software\\Policies\\Microsoft\\Windows\\Explorer",
+        "name": "NoUseStoreOpenWith",
+        "valueType": "DWord",
+        "value": 1
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1",
+        "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-admx-icm"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Applies the documented per-user policy \"Turn off access to the Store\" for the Open with dialog, so opening an unknown file type does not offer a Store search. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Anyone who opens unusual file types",
+      "tradeoff": "You find a handler app yourself instead of through the Store link. The Store itself still works.",
+      "policyDocumented": true,
+      "notes": "Sophia function: UseStoreOpenWith -Hide"
+    },
+    {
+      "id": "ui-gamebar-startup-tips-off",
+      "category": "ui-shell",
+      "description": "Stop the Game Bar showing its tips panel when a game starts.",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Software\\Microsoft\\GameBar",
+        "name": "ShowStartupPanel",
+        "valueType": "DWord",
+        "value": 0
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Hides the Game Bar startup panel (\"Press Win+G to open Game Bar\") at game launch. Sophia only applies it when the Xbox app is installed; writing the value without the app is harmless. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Gamers who keep Game Bar installed",
+      "tradeoff": "None functional.",
+      "notes": "Sophia function: XBOXGameTips -Disable"
+    },
+    {
+      "id": "ui-jpeg-wallpaper-quality-max",
+      "category": "ui-shell",
+      "description": "Import JPEG wallpapers at 100 % quality instead of re-compressing them.",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Control Panel\\Desktop",
+        "name": "JPEGImportQuality",
+        "valueType": "DWord",
+        "value": 100
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Windows re-encodes JPEG wallpapers at about 85 % quality, which shows as banding on gradients and large screens. 100 keeps the original quality. Applies the next time a wallpaper is set. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "People with high-resolution or large monitors",
+      "tradeoff": "The cached wallpaper file is a few MB larger.",
+      "notes": "Sophia function: JPEGWallpapersQuality -Max"
+    },
+    {
+      "id": "misc-autoplay-off",
+      "category": "security",
+      "description": "Do not use AutoPlay for any media or device (per user).",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\AutoplayHandlers",
+        "name": "DisableAutoplay",
+        "valueType": "DWord",
+        "value": 1
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Turns off Settings > Bluetooth & devices > AutoPlay. Inserting a USB stick, phone or disc no longer pops up an action or starts one. A small hardening and annoyance fix; AutoRun from USB is already blocked by Windows. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Anyone who plugs in USB drives, cameras or phones",
+      "tradeoff": "No automatic import prompt for photos or media; open the device in Explorer instead.",
+      "notes": "Sophia function: Autoplay -Disable"
+    },
+    {
+      "id": "misc-legacy-default-printer",
+      "category": "other",
+      "description": "Stop Windows changing the default printer to the last one used.",
+      "implementation": {
+        "type": "registry",
+        "path": "HKCU:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows",
+        "name": "LegacyDefaultPrinterMode",
+        "valueType": "DWord",
+        "value": 1
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Turns off Settings > Printers & scanners > \"Let Windows manage my default printer\", so the default printer stays the one you chose, also after you print once to another printer or change network. The per-user (HKCU) part applies to the user running the engine only.",
+      "whoBenefits": "Office and home users with more than one printer (including PDF printers)",
+      "tradeoff": "Windows no longer picks a printer per network location for you.",
+      "managedDeviceImpact": "Printer defaults may also be set by IT (Universal Print or Group Policy).",
+      "notes": "Sophia function: WindowsManageDefaultPrinter -Disable"
+    },
+    {
+      "id": "misc-long-paths-enabled",
+      "category": "other",
+      "description": "Enable Win32 long path support (paths longer than 260 characters).",
+      "implementation": {
+        "type": "registry",
+        "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem",
+        "name": "LongPathsEnabled",
+        "valueType": "DWord",
+        "value": 1
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1",
+        "https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "The documented \"Enable Win32 long paths\" setting. Apps that declare longPathAware in their manifest (PowerShell 7, Git for Windows, Node, Python 3.6+, .NET apps) can then use paths beyond MAX_PATH. Apps that do not opt in are unaffected.",
+      "whoBenefits": "Developers (node_modules, deep repos), people syncing deep SharePoint/OneDrive folders",
+      "tradeoff": "None for normal use. Explorer and many older apps still stop at 260 characters, so a long path made by one tool may not open in another.",
+      "managedDeviceImpact": "Often already set by IT for developers; the same value can be pushed by Intune or Group Policy.",
+      "policyDocumented": true,
+      "notes": "Sophia function: Win32LongPathsSupport -Enable"
+    },
+    {
+      "id": "misc-bsod-display-parameters",
+      "category": "other",
+      "description": "Show the stop-code parameters on the blue screen.",
+      "implementation": {
+        "type": "registry",
+        "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\CrashControl",
+        "name": "DisplayParameters",
+        "valueType": "DWord",
+        "value": 1
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Adds the four bug-check parameters to the stop screen, which helps diagnose a crash that does not leave a dump (for example when the pagefile is too small or the disk is the cause).",
+      "whoBenefits": "Anyone troubleshooting crashes; support staff",
+      "tradeoff": "None; only the crash screen changes.",
+      "notes": "Sophia function: BSoDStopError -Enable"
+    },
+    {
+      "id": "disk-thumbnail-cache-keep",
+      "category": "performance",
+      "description": "Keep the thumbnail cache when Disk Cleanup and maintenance run.",
+      "implementation": {
+        "type": "multi",
+        "steps": [
+          {
+            "type": "registry",
+            "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VolumeCaches\\Thumbnail Cache",
+            "name": "Autorun",
+            "valueType": "DWord",
+            "value": 0
+          },
+          {
+            "type": "registry",
+            "path": "HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VolumeCaches\\Thumbnail Cache",
+            "name": "Autorun",
+            "valueType": "DWord",
+            "value": 0
+          }
+        ]
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": "Avoids thumbnail regeneration after automatic cleanups; not measured",
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Stops automatic maintenance (silent Disk Cleanup) from deleting thumbcache_*.db, so folders with many photos or videos do not rebuild their thumbnails after a cleanup. Manual Disk Cleanup can still clear it.",
+      "whoBenefits": "Photo and video folders, slower disks",
+      "tradeoff": "The thumbnail cache keeps its space (usually tens to a few hundred MB).",
+      "notes": "Sophia function: ThumbnailCacheRemoval -Disable"
+    },
+    {
+      "id": "edge-update-no-desktop-shortcut",
+      "category": "edge-browser",
+      "description": "Stop Edge updates creating desktop shortcuts (Stable, Beta, Dev, Canary).",
+      "implementation": {
+        "type": "multi",
+        "steps": [
+          {
+            "type": "registry",
+            "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\EdgeUpdate",
+            "name": "CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}",
+            "valueType": "DWord",
+            "value": 0
+          },
+          {
+            "type": "registry",
+            "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\EdgeUpdate",
+            "name": "CreateDesktopShortcut{2CD8A007-E189-409D-A2C8-9AF4EF3C72AA}",
+            "valueType": "DWord",
+            "value": 0
+          },
+          {
+            "type": "registry",
+            "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\EdgeUpdate",
+            "name": "CreateDesktopShortcut{0D50BFEC-CD6A-4F9A-964C-C7416E3ACB10}",
+            "valueType": "DWord",
+            "value": 0
+          },
+          {
+            "type": "registry",
+            "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\EdgeUpdate",
+            "name": "CreateDesktopShortcut{65C35B14-6C1D-4122-AC46-7148CC9D6497}",
+            "valueType": "DWord",
+            "value": 0
+          }
+        ]
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1",
+        "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-update-policies#createdesktopshortcut"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "The documented Edge Update policy \"Prevent Desktop Shortcut creation upon install\" per channel. Edge stops putting its shortcut back on the desktop after each update. Edge keeps updating.",
+      "whoBenefits": "Anyone who deletes the Edge desktop shortcut",
+      "tradeoff": "None functional.",
+      "managedDeviceImpact": "Edge Update may be governed by Intune or Group Policy; check edge://policy.",
+      "policyDocumented": true,
+      "notes": "Sophia function: PreventEdgeShortcutCreation -Channels Stable, Beta, Dev, Canary"
+    },
+    {
+      "id": "task-diag-extra-set",
+      "category": "scheduled-tasks",
+      "description": "Disable more diagnostic and Maps tasks: MareBackup, Disk Diagnostic data collector, MapsToastTask, MapsUpdateTask.",
+      "implementation": {
+        "type": "multi",
+        "steps": [
+          {
+            "type": "task",
+            "path": "\\Microsoft\\Windows\\Application Experience\\",
+            "name": "MareBackup",
+            "state": "Disabled"
+          },
+          {
+            "type": "task",
+            "path": "\\Microsoft\\Windows\\DiskDiagnostic\\",
+            "name": "Microsoft-Windows-DiskDiagnosticDataCollector",
+            "state": "Disabled"
+          },
+          {
+            "type": "task",
+            "path": "\\Microsoft\\Windows\\Maps\\",
+            "name": "MapsToastTask",
+            "state": "Disabled"
+          },
+          {
+            "type": "task",
+            "path": "\\Microsoft\\Windows\\Maps\\",
+            "name": "MapsUpdateTask",
+            "state": "Disabled"
+          }
+        ]
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Completes task-telemetry-set with the tasks Sophia also disables: MareBackup (gathers Win32 app inventory for the App Backup scenario and runs the compatibility telemetry runner), the disk diagnostic data collector (uploads disk data for CEIP participants) and the two Maps tasks (map toasts and offline-map update checks). Tasks that are already disabled or absent on a build are left alone. On build 26200 the Disk Diagnostic and MapsUpdateTask tasks are already disabled by default.",
+      "whoBenefits": "Privacy-minded users; PCs without offline maps",
+      "tradeoff": "Windows Backup may not list desktop apps to restore on a new PC. Offline maps are not updated automatically (open Maps to update them).",
+      "notes": "Sophia function: ScheduledTasks -Disable (subset)"
+    },
+    {
+      "id": "wu-microsoft-update-other-products",
+      "category": "updates",
+      "description": "Receive updates for other Microsoft products (Microsoft Update) with Windows Update.",
+      "implementation": {
+        "type": "registry",
+        "path": "HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings",
+        "name": "AllowMUUpdateService",
+        "valueType": "DWord",
+        "value": 1
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Turns on Settings > Windows Update > Advanced options > \"Receive updates for other Microsoft products\". Windows Update then also patches products like Microsoft 365 MSI installs, Visual Studio components, SQL tools and older .NET runtimes. A security improvement, not a speed one.",
+      "whoBenefits": "Personal PCs with Microsoft software outside the Store",
+      "tradeoff": "Slightly more downloads during update checks.",
+      "managedSkip": "Windows Update settings are owned by the organisation (Intune update rings, WUfB, Autopatch).",
+      "notes": "Sophia function: UpdateMicrosoftProducts -Enable"
+    },
+    {
+      "id": "wu-restart-notification-on",
+      "category": "updates",
+      "description": "Notify me when a restart is required to finish updating.",
+      "implementation": {
+        "type": "registry",
+        "path": "HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings",
+        "name": "RestartNotificationsAllowed2",
+        "valueType": "DWord",
+        "value": 1
+      },
+      "revert": "snapshot",
+      "risk": "safe",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "safe",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Turns on Settings > Windows Update > Advanced options > \"Notify me when a restart is required to finish updating\", so pending updates are visible instead of waiting silently for the next restart.",
+      "whoBenefits": "Anyone who postpones restarts",
+      "tradeoff": "An extra notification when an update is pending.",
+      "managedSkip": "Windows Update settings are owned by the organisation (Intune update rings, WUfB, Autopatch).",
+      "notes": "Sophia function: RestartNotification -Show"
+    },
+    {
+      "id": "task-compat-appraiser-exp-off",
+      "category": "scheduled-tasks",
+      "description": "Disable the Microsoft Compatibility Appraiser Exp scheduled task.",
+      "implementation": {
+        "type": "task",
+        "path": "\\Microsoft\\Windows\\Application Experience\\",
+        "name": "Microsoft Compatibility Appraiser Exp",
+        "state": "Disabled"
+      },
+      "revert": "snapshot",
+      "risk": "moderate",
+      "breaks": "Feature-update compatibility safeguard holds and readiness data built from the Appraiser.",
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1"
+      ],
+      "preset": "balanced",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "The experimental twin of the Compatibility Appraiser that some 24H2 builds ship. Same reasoning and same limits as task-compat-appraiser-off: it can cause CompatTelRunner bursts, and Windows uses its results for feature-update safeguards. Absent on this 26200 install, where the engine skips it as not present.",
+      "whoBenefits": "Low-end PCs with CompatTelRunner spikes that you update by hand",
+      "tradeoff": "Feature-update readiness and safeguard holds may work differently; Windows may re-enable the task.",
+      "managedSkip": "The Compatibility Appraiser feeds feature-update safeguard holds and Update Compliance / Autopatch readiness that IT relies on.",
+      "managedDeviceImpact": "The Appraiser feeds feature-update readiness and compatibility gating that Windows Update for Business / Autopatch rely on.",
+      "notes": "Sophia function: ScheduledTasks -Disable (subset)"
+    },
+    {
+      "id": "sec-ps-scriptblock-logging",
+      "category": "security",
+      "description": "Turn on PowerShell script block logging (event 4104).",
+      "implementation": {
+        "type": "registry",
+        "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging",
+        "name": "EnableScriptBlockLogging",
+        "valueType": "DWord",
+        "value": 1
+      },
+      "revert": "snapshot",
+      "risk": "moderate",
+      "breaks": null,
+      "ram_or_perf_effect": "Small extra event-log I/O while PowerShell runs",
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1",
+        "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_logging_windows"
+      ],
+      "preset": "balanced",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Hardening, opt-in: the documented policy \"Turn on PowerShell Script Block Logging\" records the text of every PowerShell script block that runs in Microsoft-Windows-PowerShell/Operational, including deobfuscated code. It is what lets you or a security tool see afterwards what a malicious script did. Sophia also turns on module logging for all modules and process-creation auditing; those are left out here (module logging is very noisy, and process auditing needs auditpol, for which the engine has no handler).",
+      "whoBenefits": "Security-minded users and admins of unmanaged PCs",
+      "tradeoff": "More event-log writes when scripts run, and secrets that appear in script text (for example a password in a command line) end up in the event log. Windows already logs suspicious script blocks without this setting.",
+      "managedSkip": "PowerShell logging is part of the organisation's security baseline (Intune, Defender for Endpoint); a local policy can conflict with it.",
+      "policyDocumented": true,
+      "notes": "Sophia function: EventViewerCustomView -Enable (script block part only)"
+    },
+    {
+      "id": "sec-defender-sandbox",
+      "category": "security",
+      "description": "Run the Microsoft Defender Antivirus content scanner in a sandbox (MP_FORCE_USE_SANDBOX=1).",
+      "implementation": {
+        "type": "registry",
+        "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment",
+        "name": "MP_FORCE_USE_SANDBOX",
+        "valueType": "String",
+        "value": "1"
+      },
+      "revert": "snapshot",
+      "risk": "moderate",
+      "breaks": null,
+      "ram_or_perf_effect": "An extra sandboxed Defender process; memory cost not measured",
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1",
+        "https://learn.microsoft.com/en-us/defender-endpoint/sandbox-mdav"
+      ],
+      "preset": "balanced",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Hardening, opt-in: the machine environment variable Microsoft documents for running Defender's scanning in a low-privilege sandbox process, so a parser exploit in a scanned file does not run as SYSTEM. Takes effect after a restart. Has no effect when another antivirus product is active.",
+      "whoBenefits": "Personal PCs that use Defender as their antivirus",
+      "tradeoff": "An extra Defender process (MsMpEngCP.exe) and somewhat more memory. The environment variable is visible to every process.",
+      "managedSkip": "Defender configuration belongs to the organisation's security baseline.",
+      "notes": "Sophia function: DefenderSandbox -Enable"
+    },
+    {
+      "id": "sec-arso-off",
+      "category": "security",
+      "description": "Do not use sign-in info to finish setting up the device after an update (turn off ARSO).",
+      "implementation": {
+        "type": "registry",
+        "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+        "name": "DisableAutomaticRestartSignOn",
+        "valueType": "DWord",
+        "value": 1
+      },
+      "revert": "snapshot",
+      "risk": "moderate",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1",
+        "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/component-updates/winlogon-automatic-restart-sign-on--arso-"
+      ],
+      "preset": "balanced",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "The documented policy \"Sign-in and lock last interactive user automatically after a restart\" set to off. Windows no longer stores your sign-in to auto-sign-in and lock after an update restart. Sophia sets the per-user ARSO OptOut under a SID-keyed key instead, which the engine cannot address; the policy is machine-wide.",
+      "whoBenefits": "Security-minded users, shared PCs",
+      "tradeoff": "After an update restart you sign in yourself, and apps registered for restart do not reopen until you do.",
+      "managedSkip": "Sign-in behaviour is set by the organisation's policies (Intune or Group Policy).",
+      "policyDocumented": true,
+      "notes": "Sophia function: SigninInfo -Disable (policy route)"
+    },
+    {
+      "id": "comp-powershell-v2-off",
+      "category": "components",
+      "description": "Disable the Windows PowerShell 2.0 engine (optional feature).",
+      "implementation": {
+        "type": "optionalfeature",
+        "name": "MicrosoftWindowsPowerShellV2Root"
+      },
+      "revert": "Snapshot per step: -Undo runs Enable-WindowsOptionalFeature if the feature was enabled (the payload stays on disk, so no download).",
+      "risk": "moderate",
+      "breaks": null,
+      "ram_or_perf_effect": null,
+      "post_install_possible": true,
+      "projects": [
+        "sophia"
+      ],
+      "evidence": [
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Module/Sophia.psm1",
+        "https://github.com/farag2/Sophia-Script-for-Windows/blob/main/src/Sophia_Script_for_Windows_11/Sophia.ps1",
+        "https://support.microsoft.com/topic/fe6d1edc-2ed2-4c33-b297-afe82a64200a",
+        "https://learn.microsoft.com/windows/whats-new/removed-features"
+      ],
+      "preset": "balanced",
+      "verification": "new-unverified",
+      "effectiveness": 0,
+      "evidenceQuality": "none",
+      "measuredEffect": "not measured",
+      "explanation": "Hardening: PowerShell 2.0 has none of the logging and AMSI protections of 5.1, so attackers use 'powershell -version 2' to slip past them. Disabling the feature removes that downgrade path. Microsoft removed the feature from Windows 11 24H2 builds in 2025, so on current builds the engine will skip it as not present; it matters on older or unpatched installs.",
+      "whoBenefits": "Any PC that still has the feature",
+      "tradeoff": "Very old scripts or installers that require PowerShell 2.0 stop working. The feature payload stays on disk, so undo works offline.",
+      "notes": "Sophia function: WindowsFeatures -Disable (MicrosoftWindowsPowerShellV2Root)"
     }
   ]
 }
