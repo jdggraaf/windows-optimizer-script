@@ -295,7 +295,7 @@ function ConvertTo-DriftRows($Doc) {
         $rows += [pscustomobject]@{
             Id = [string]$t.id; Status = [string]$t.status; DriftedSteps = [int](Get-Prop $t 'driftedSteps' 0)
             Builds = (@(Get-Prop $t 'appliedBuilds' @()) -join ', '); Note = ($notes -join '; '); Steps = @(Get-Prop $t 'steps' @())
-            StatusColor = $(switch ([string]$t.status) { 'Drifted' { '#C62828' } 'InSync' { '#2E7D32' } default { '#757575' } })
+            StatusColor = $(switch ([string]$t.status) { 'Drifted' { '#E57373' } 'InSync' { '#81C784' } default { '#9AA0A6' } })
         }
     }
     ,$rows
@@ -340,11 +340,11 @@ function ConvertTo-FootprintRows($Cmp) {
         $chg = if ($null -eq $m.delta) { '' } elseif ($isBytes) { Format-FpBytes $m.delta -Signed } else { ([double]$m.delta).ToString('+0;-0;0', $inv) }
         $rows += [pscustomobject]@{
             Metric = [string]$m.label; Before = (& $fmt $m.before); Now = (& $fmt $m.after); Change = $chg; Verdict = [string]$m.verdict
-            VerdictColor = $(switch ([string]$m.verdict) { 'better' { '#2E7D32' } 'worse' { '#C62828' } default { '#757575' } })
+            VerdictColor = $(switch ([string]$m.verdict) { 'better' { '#81C784' } 'worse' { '#E57373' } default { '#9AA0A6' } })
         }
     }
     foreach ($s in @(Get-Prop $Cmp 'states' @())) {
-        $rows += [pscustomobject]@{ Metric = [string]$s.label; Before = [string]$s.before; Now = [string]$s.after; Change = $(if ($s.changed) { 'changed' } else { '' }); Verdict = $(if ($s.changed) { 'changed' } else { 'same' }); VerdictColor = $(if ($s.changed) { '#B26A00' } else { '#757575' }) }
+        $rows += [pscustomobject]@{ Metric = [string]$s.label; Before = [string]$s.before; Now = [string]$s.after; Change = $(if ($s.changed) { 'changed' } else { '' }); Verdict = $(if ($s.changed) { 'changed' } else { 'same' }); VerdictColor = $(if ($s.changed) { '#FFB74D' } else { '#9AA0A6' }) }
     }
     ,$rows
 }
@@ -353,23 +353,23 @@ function ConvertTo-FootprintNowRows($Fp) {
     # A single footprint report -> the same grid rows, with no "before" column. Pure function.
     $rows = @()
     $disk = Get-Prop $Fp 'disk' $null
-    if ($disk) { $rows += [pscustomobject]@{ Metric = ("System drive {0} free / total" -f (Get-Prop $disk 'drive' '')); Before = ''; Now = ((Format-FpBytes (Get-Prop $disk 'freeBytes' $null)) + ' / ' + (Format-FpBytes (Get-Prop $disk 'totalBytes' $null))); Change = ''; Verdict = ''; VerdictColor = '#757575' } }
+    if ($disk) { $rows += [pscustomobject]@{ Metric = ("System drive {0} free / total" -f (Get-Prop $disk 'drive' '')); Before = ''; Now = ((Format-FpBytes (Get-Prop $disk 'freeBytes' $null)) + ' / ' + (Format-FpBytes (Get-Prop $disk 'totalBytes' $null))); Change = ''; Verdict = ''; VerdictColor = '#9AA0A6' } }
     $sf = Get-Prop $Fp 'systemFiles' $null
     if ($sf) {
         foreach ($p in @(@('hiberfilBytes', 'hiberfil.sys'), @('pagefileBytes', 'pagefile.sys'), @('swapfileBytes', 'swapfile.sys'))) {
-            $rows += [pscustomobject]@{ Metric = $p[1]; Before = ''; Now = (Format-FpBytes (Get-Prop $sf $p[0] $null)); Change = ''; Verdict = ''; VerdictColor = '#757575' }
+            $rows += [pscustomobject]@{ Metric = $p[1]; Before = ''; Now = (Format-FpBytes (Get-Prop $sf $p[0] $null)); Change = ''; Verdict = ''; VerdictColor = '#9AA0A6' }
         }
     }
     foreach ($p in @(@('appx', 'userCount', 'AppX packages (current user)'), @('appx', 'provisionedCount', 'AppX packages (provisioned)'), @('processes', 'count', 'Running processes'),
             @('services', 'total', 'Services (total)'), @('services', 'running', 'Services (running)'), @('services', 'automatic', 'Services (automatic start)'), @('startupItems', 'count', 'Startup entries'))) {
         $grp = Get-Prop $Fp $p[0] $null
         $v = if ($grp) { Get-Prop $grp $p[1] $null } else { $null }
-        $rows += [pscustomobject]@{ Metric = $p[2]; Before = ''; Now = $(if ($null -eq $v) { 'n/a' } else { [string]$v }); Change = ''; Verdict = ''; VerdictColor = '#757575' }
+        $rows += [pscustomobject]@{ Metric = $p[2]; Before = ''; Now = $(if ($null -eq $v) { 'n/a' } else { [string]$v }); Change = ''; Verdict = ''; VerdictColor = '#9AA0A6' }
     }
     $mem = Get-Prop $Fp 'memory' $null
     if ($mem) {
-        $rows += [pscustomobject]@{ Metric = 'RAM in use'; Before = ''; Now = (Format-FpBytes (Get-Prop $mem 'usedBytes' $null)); Change = ''; Verdict = ''; VerdictColor = '#757575' }
-        $rows += [pscustomobject]@{ Metric = 'Commit charge'; Before = ''; Now = (Format-FpBytes (Get-Prop $mem 'commitBytes' $null)); Change = ''; Verdict = ''; VerdictColor = '#757575' }
+        $rows += [pscustomobject]@{ Metric = 'RAM in use'; Before = ''; Now = (Format-FpBytes (Get-Prop $mem 'usedBytes' $null)); Change = ''; Verdict = ''; VerdictColor = '#9AA0A6' }
+        $rows += [pscustomobject]@{ Metric = 'Commit charge'; Before = ''; Now = (Format-FpBytes (Get-Prop $mem 'commitBytes' $null)); Change = ''; Verdict = ''; VerdictColor = '#9AA0A6' }
     }
     ,$rows
 }
@@ -412,10 +412,13 @@ function Get-Prop($Obj, [string]$Name, $Default = $null) {
     $Default
 }
 
-$script:RiskColors   = @{ 'safe' = '#2E7D32'; 'moderate' = '#B26A00'; 'breaks-features' = '#E65100'; 'reduces-security' = '#C62828' }
+# Dark theme. Risk and status colours are used as text on a dark panel, so they are light tints;
+# preset and evidence colours are badge backgrounds behind white text, so they stay saturated.
+$script:TextGreen = '#81C784'; $script:TextAmber = '#FFB74D'; $script:TextRed = '#E57373'; $script:TextMuted = '#9AA0A6'
+$script:RiskColors   = @{ 'safe' = $script:TextGreen; 'moderate' = $script:TextAmber; 'breaks-features' = '#FF8A65'; 'reduces-security' = $script:TextRed }
 $script:PresetColors = @{ 'safe' = '#2E7D32'; 'balanced' = '#B26A00'; 'aggressive' = '#E65100'; 'never-default' = '#C62828' }
 $script:EvColors     = @{ 'strong' = '#2E7D32'; 'mixed' = '#1565C0'; 'weak' = '#757575'; 'none' = '#9E9E9E' }
-$script:StatusColors = @{ 'Applied' = '#2E7D32'; 'NotApplied' = '#1565C0'; 'Partial' = '#B26A00'; 'Skipped' = '#757575' }
+$script:StatusColors = @{ 'Applied' = $script:TextGreen; 'NotApplied' = '#64B5F6'; 'Partial' = $script:TextAmber; 'Skipped' = $script:TextMuted }
 $script:RiskOrder    = @{ 'safe' = 0; 'moderate' = 1; 'breaks-features' = 2; 'reduces-security' = 3 }
 $script:EvOrder      = @{ 'strong' = 3; 'mixed' = 2; 'weak' = 1; 'none' = 0 }
 $script:StatusOrder  = @{ 'NotApplied' = 0; 'Partial' = 1; 'Applied' = 2; 'Skipped' = 3 }
@@ -455,10 +458,10 @@ function New-TweakRows {
         elseif ($r.Status -eq 'Skipped') { $r.CheckTip = 'The engine would skip this tweak: ' + $r.Note }
         elseif ($r.IsUnverified) { $r.CheckTip = 'Unverified: not tested on a real machine. Unchecked by default.' }
         else { $r.CheckTip = '' }
-        $r.RiskColor = $script:RiskColors[$r.Risk]; if (-not $r.RiskColor) { $r.RiskColor = '#757575' }
+        $r.RiskColor = $script:RiskColors[$r.Risk]; if (-not $r.RiskColor) { $r.RiskColor = $script:TextMuted }
         $r.PresetColor = $script:PresetColors[$r.Preset]; if (-not $r.PresetColor) { $r.PresetColor = '#757575' }
         $r.EvColor = $script:EvColors[$r.EvidenceQuality]; if (-not $r.EvColor) { $r.EvColor = '#9E9E9E' }
-        $r.StatusColor = $script:StatusColors[$r.Status]; if (-not $r.StatusColor) { $r.StatusColor = '#757575' }
+        $r.StatusColor = $script:StatusColors[$r.Status]; if (-not $r.StatusColor) { $r.StatusColor = $script:TextMuted }
         $r.Data = $t
         Set-RowToggle $r
         $rows.Add($r)
@@ -748,11 +751,6 @@ $script:MainXaml = @'
         Title="DebloatKit" Width="1480" Height="880" MinWidth="1000" MinHeight="600"
         WindowStartupLocation="CenterScreen" Background="#F4F6F8" FontFamily="Segoe UI" FontSize="13">
   <Window.Resources>
-    <Style TargetType="Button">
-      <Setter Property="Padding" Value="12,6"/>
-      <Setter Property="Margin" Value="0,0,8,0"/>
-      <Setter Property="MinHeight" Value="30"/>
-    </Style>
     <Style x:Key="Label" TargetType="TextBlock">
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="Margin" Value="0,10,0,3"/>
@@ -931,7 +929,7 @@ $script:MainXaml = @'
                     <Button Content="{Binding ToggleLabel}" IsEnabled="{Binding CanToggle}" ToolTip="{Binding ToggleTip}" ToolTipService.ShowOnDisabled="True"
                             Tag="rowtoggle" Padding="8,2" Margin="0" MinHeight="24" MinWidth="76" VerticalAlignment="Center" HorizontalAlignment="Left">
                       <Button.Style>
-                        <Style TargetType="Button">
+                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                           <Setter Property="Visibility" Value="Collapsed"/>
                           <Style.Triggers>
                             <DataTrigger Binding="{Binding HasToggle}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
@@ -1071,7 +1069,7 @@ $script:MainXaml = @'
                     <DataGridTextColumn Header="Note" Binding="{Binding note}" Width="150"/>
                   </DataGrid.Columns>
                   <DataGrid.CellStyle>
-                    <Style TargetType="DataGridCell"><Setter Property="TextBlock.TextWrapping" Value="Wrap"/></Style>
+                    <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}"><Setter Property="TextBlock.TextWrapping" Value="Wrap"/></Style>
                   </DataGrid.CellStyle>
                 </DataGrid>
               </Grid>
@@ -1167,7 +1165,7 @@ $script:PlanXaml = @'
         <DataGridTextColumn Header="Reason" Binding="{Binding reason}" Width="*"/>
       </DataGrid.Columns>
       <DataGrid.CellStyle>
-        <Style TargetType="DataGridCell"><Setter Property="TextBlock.TextWrapping" Value="Wrap"/></Style>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}"><Setter Property="TextBlock.TextWrapping" Value="Wrap"/></Style>
       </DataGrid.CellStyle>
     </DataGrid>
     <Button x:Name="btnClose" Grid.Row="2" Content="Close" Width="90" Padding="10,6" HorizontalAlignment="Right" Margin="0,10,0,0" IsDefault="True"/>
@@ -1189,10 +1187,318 @@ $script:TextXaml = @'
 </Window>
 '@
 
+# Dark theme ------------------------------------------------------------------
+# The window XAML above keeps its original light colour literals; Read-Xaml swaps them through this
+# map and injects the control styles below, so all three windows share one palette. New-Brush uses
+# the same map for colours set from code. Badge colours (white text on saturated fills) are not mapped.
+$script:DarkMap = @{
+    '#F4F6F8'   = '#1B1C1F'     # window background
+    '#FAFBFC'   = '#2A2C31'     # alternating row
+    '#E6FFFFFF' = '#E625272B'   # loading overlay
+    '#ECEFF1'   = '#33363C'     # grid lines, group header
+    '#CFD8DC'   = '#3A3D44'     # panel borders
+    '#E8F5E9'   = '#1E3324'; '#C8E6C9' = '#2E5236'   # unmanaged banner (background, border)
+    '#FFF3E0'   = '#3A2C17'     # managed banner background (its border is set directly in Update-Banner)
+    '#263238'   = '#E4E6EA'; '#37474F' = '#D3D7DC'; '#455A64' = '#C2C7CE'   # text, strongest to weakest
+    '#546E7A'   = '#A9B0B8'; '#607D8B' = '#9AA3AD'; '#78909C' = '#8B949E'
+}
+
+$script:DarkStyles = @'
+    <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#25272B"/>
+    <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#2E3035"/>
+    <SolidColorBrush x:Key="{x:Static SystemColors.WindowTextBrushKey}" Color="#E4E6EA"/>
+    <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="#E4E6EA"/>
+    <SolidColorBrush x:Key="{x:Static SystemColors.GrayTextBrushKey}" Color="#8B949E"/>
+    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#264F78"/>
+    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#FFFFFF"/>
+
+    <Style TargetType="Button">
+      <Setter Property="Padding" Value="12,6"/>
+      <Setter Property="Margin" Value="0,0,8,0"/>
+      <Setter Property="MinHeight" Value="30"/>
+      <Setter Property="Foreground" Value="#E4E6EA"/>
+      <Setter Property="Background" Value="#34373D"/>
+      <Setter Property="BorderBrush" Value="#4A4E56"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Grid SnapsToDevicePixels="True">
+              <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4"/>
+              <Border x:Name="hl" Background="#FFFFFF" CornerRadius="4" Opacity="0"/>
+              <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="hl" Property="Opacity" Value="0.08"/><Setter TargetName="bd" Property="BorderBrush" Value="#6B717B"/></Trigger>
+              <Trigger Property="IsPressed" Value="True"><Setter TargetName="hl" Property="Opacity" Value="0.16"/></Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="bd" Property="BorderBrush" Value="#5B9BD5"/></Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style TargetType="TextBox">
+      <Setter Property="Background" Value="#1E1F23"/>
+      <Setter Property="Foreground" Value="#E4E6EA"/>
+      <Setter Property="BorderBrush" Value="#4A4E56"/>
+      <Setter Property="CaretBrush" Value="#E4E6EA"/>
+      <Setter Property="SelectionBrush" Value="#3D7BC4"/>
+    </Style>
+
+    <ControlTemplate x:Key="DkComboToggle" TargetType="ToggleButton">
+      <Border x:Name="bd" Background="#1E1F23" BorderBrush="#4A4E56" BorderThickness="1" CornerRadius="3">
+        <Path HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,9,0" Data="M 0 0 L 4 4 L 8 0 Z" Fill="#B5BAC1"/>
+      </Border>
+      <ControlTemplate.Triggers>
+        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="BorderBrush" Value="#6B717B"/></Trigger>
+        <Trigger Property="IsChecked" Value="True"><Setter TargetName="bd" Property="BorderBrush" Value="#5B9BD5"/></Trigger>
+      </ControlTemplate.Triggers>
+    </ControlTemplate>
+    <Style TargetType="ComboBox">
+      <Setter Property="Foreground" Value="#E4E6EA"/>
+      <Setter Property="MinHeight" Value="27"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ComboBox">
+            <Grid>
+              <ToggleButton Template="{StaticResource DkComboToggle}" Focusable="False" ClickMode="Press"
+                            IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"/>
+              <ContentPresenter IsHitTestVisible="False" Margin="8,3,26,3" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+              <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
+                <Border Background="#25272B" BorderBrush="#4A4E56" BorderThickness="1" CornerRadius="3" Margin="0,2,0,0"
+                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                  <ScrollViewer SnapsToDevicePixels="True"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/></ScrollViewer>
+                </Border>
+              </Popup>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="ComboBoxItem">
+      <Setter Property="Foreground" Value="#E4E6EA"/>
+      <Setter Property="Padding" Value="8,4"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ComboBoxItem">
+            <Border x:Name="bd" Background="Transparent" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsSelected" Value="True"><Setter TargetName="bd" Property="Background" Value="#264F78"/></Trigger>
+              <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="bd" Property="Background" Value="#34373D"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style TargetType="CheckBox">
+      <Setter Property="Foreground" Value="#E4E6EA"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CheckBox">
+            <Grid Background="Transparent">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+              <Border x:Name="box" Width="16" Height="16" CornerRadius="3" Background="#1E1F23" BorderBrush="#6B717B" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                <Path x:Name="mark" Data="M 2.5 7.5 L 6 11 L 12.5 3.5" Stroke="White" StrokeThickness="2" Visibility="Collapsed"/>
+              </Border>
+              <ContentPresenter Grid.Column="1" Margin="7,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="box" Property="BorderBrush" Value="#9AA3AD"/></Trigger>
+              <Trigger Property="IsChecked" Value="True"><Setter TargetName="mark" Property="Visibility" Value="Visible"/><Setter TargetName="box" Property="Background" Value="#3D7BC4"/><Setter TargetName="box" Property="BorderBrush" Value="#3D7BC4"/></Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style TargetType="DataGrid">
+      <Setter Property="Background" Value="#25272B"/>
+      <Setter Property="Foreground" Value="#E4E6EA"/>
+      <Setter Property="RowBackground" Value="#25272B"/>
+      <Setter Property="AlternatingRowBackground" Value="#2A2C31"/>
+      <Setter Property="HorizontalGridLinesBrush" Value="#33363C"/>
+      <Setter Property="VerticalGridLinesBrush" Value="#33363C"/>
+      <Setter Property="BorderBrush" Value="#3A3D44"/>
+    </Style>
+    <Style TargetType="DataGridColumnHeader">
+      <Setter Property="Background" Value="#2E3035"/>
+      <Setter Property="Foreground" Value="#B5BAC1"/>
+      <Setter Property="BorderBrush" Value="#3A3D44"/>
+      <Setter Property="BorderThickness" Value="0,0,1,1"/>
+      <Setter Property="Padding" Value="6,6"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="DataGridColumnHeader">
+            <Grid>
+              <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+              </Border>
+              <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Width="6" Opacity="0" Cursor="SizeWE"/>
+              <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Width="6" Opacity="0" Cursor="SizeWE"/>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="DataGridCell">
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="#264F78"/>
+          <Setter Property="BorderBrush" Value="#264F78"/>
+          <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style TargetType="TabControl">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="#3A3D44"/>
+      <Setter Property="BorderThickness" Value="0,1,0,0"/>
+      <Setter Property="Padding" Value="0"/>
+    </Style>
+    <Style TargetType="TabItem">
+      <Setter Property="Foreground" Value="#B5BAC1"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="TabItem">
+            <Border x:Name="bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="0,0,0,2" Padding="14,7" Margin="0,0,2,0" CornerRadius="3,3,0,0">
+              <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="#2A2C31"/></Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="bd" Property="Background" Value="#25272B"/>
+                <Setter TargetName="bd" Property="BorderBrush" Value="#5B9BD5"/>
+                <Setter Property="Foreground" Value="#FFFFFF"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style x:Key="DkThumb" TargetType="Thumb">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Thumb">
+            <Border x:Name="t" Background="#4A4E56" CornerRadius="4"/>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="t" Property="Background" Value="#6B717B"/></Trigger>
+              <Trigger Property="IsDragging" Value="True"><Setter TargetName="t" Property="Background" Value="#80868F"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="DkPage" TargetType="RepeatButton">
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="IsTabStop" Value="False"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="ScrollBar">
+      <Setter Property="Background" Value="#1F2024"/>
+      <Setter Property="Width" Value="11"/>
+      <Setter Property="MinWidth" Value="11"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ScrollBar">
+            <Border Background="{TemplateBinding Background}">
+              <Track x:Name="PART_Track" IsDirectionReversed="True">
+                <Track.DecreaseRepeatButton><RepeatButton Style="{StaticResource DkPage}" Command="ScrollBar.PageUpCommand"/></Track.DecreaseRepeatButton>
+                <Track.Thumb><Thumb Style="{StaticResource DkThumb}" Margin="2"/></Track.Thumb>
+                <Track.IncreaseRepeatButton><RepeatButton Style="{StaticResource DkPage}" Command="ScrollBar.PageDownCommand"/></Track.IncreaseRepeatButton>
+              </Track>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="Orientation" Value="Horizontal">
+          <Setter Property="Width" Value="Auto"/>
+          <Setter Property="MinWidth" Value="0"/>
+          <Setter Property="Height" Value="11"/>
+          <Setter Property="MinHeight" Value="11"/>
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="ScrollBar">
+                <Border Background="{TemplateBinding Background}">
+                  <Track x:Name="PART_Track" IsDirectionReversed="False">
+                    <Track.DecreaseRepeatButton><RepeatButton Style="{StaticResource DkPage}" Command="ScrollBar.PageLeftCommand"/></Track.DecreaseRepeatButton>
+                    <Track.Thumb><Thumb Style="{StaticResource DkThumb}" Margin="2"/></Track.Thumb>
+                    <Track.IncreaseRepeatButton><RepeatButton Style="{StaticResource DkPage}" Command="ScrollBar.PageRightCommand"/></Track.IncreaseRepeatButton>
+                  </Track>
+                </Border>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style TargetType="ToolTip">
+      <Setter Property="Background" Value="#2E3035"/>
+      <Setter Property="Foreground" Value="#E4E6EA"/>
+      <Setter Property="BorderBrush" Value="#4A4E56"/>
+    </Style>
+    <Style TargetType="ProgressBar">
+      <Setter Property="Background" Value="#33363C"/>
+      <Setter Property="Foreground" Value="#5B9BD5"/>
+      <Setter Property="BorderBrush" Value="#3A3D44"/>
+    </Style>
+    <Style TargetType="Expander">
+      <Setter Property="Foreground" Value="#E4E6EA"/>
+    </Style>
+    <Style TargetType="Hyperlink">
+      <Setter Property="Foreground" Value="#64B5F6"/>
+    </Style>
+'@
+
+function ConvertTo-DarkXaml([string]$Xaml) {
+    foreach ($k in $script:DarkMap.Keys) { $Xaml = $Xaml.Replace('"' + $k + '"', '"' + $script:DarkMap[$k] + '"') }
+    $Xaml = $Xaml.Replace('Background="White"', 'Background="#25272B"')
+    $Xaml = $Xaml.Replace('Foreground="#B26A00"', 'Foreground="#FFB74D"')   # warning text; #B26A00 stays a badge fill elsewhere
+    # Default text colour for every TextBlock that does not set its own.
+    $Xaml = [regex]::Replace($Xaml, '(<Window\b[^>]*?)FontFamily="Segoe UI"', '$1Foreground="#E4E6EA" FontFamily="Segoe UI"')
+    if ($Xaml.Contains('<Window.Resources>')) { return $Xaml.Replace('<Window.Resources>', "<Window.Resources>`n" + $script:DarkStyles) }
+    $end = $Xaml.IndexOf('>', $Xaml.IndexOf('<Window')) + 1
+    $Xaml.Insert($end, "`n  <Window.Resources>`n" + $script:DarkStyles + "  </Window.Resources>")
+}
+
+function Set-DarkTitleBar($Window) {
+    try {
+        if (-not ('DebloatKit.Dwm' -as [type])) {
+            Add-Type -Namespace DebloatKit -Name Dwm -MemberDefinition '[DllImport("dwmapi.dll")] public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);'
+        }
+        $Window.Add_SourceInitialized({
+                param($s, $e)
+                try {
+                    $h = (New-Object System.Windows.Interop.WindowInteropHelper($s)).Handle
+                    $on = 1
+                    [void][DebloatKit.Dwm]::DwmSetWindowAttribute($h, 20, [ref]$on, 4)   # DWMWA_USE_IMMERSIVE_DARK_MODE (Windows 10 2004+, Windows 11)
+                } catch { }
+            })
+    } catch { }   # cosmetic only
+}
+
 function Read-Xaml([string]$Xaml) {
-    $sr = New-Object System.IO.StringReader($Xaml)
+    $sr = New-Object System.IO.StringReader((ConvertTo-DarkXaml $Xaml))
     $xr = [System.Xml.XmlReader]::Create($sr)
-    try { [System.Windows.Markup.XamlReader]::Load($xr) } finally { $xr.Close() }
+    try { $w = [System.Windows.Markup.XamlReader]::Load($xr) } finally { $xr.Close() }
+    if ($w -is [System.Windows.Window]) { Set-DarkTitleBar $w }
+    $w
 }
 
 #endregion
@@ -1527,7 +1833,7 @@ function Invoke-SelfTest {
                 steps = @([pscustomobject]@{ type = 'service'; target = 'Svc'; desired = 'Disabled'; current = 'Disabled'; state = 'InSync'; note = ''; run = 'r1'; appliedBuild = '26100.1' }) })
     }
     $fr = ConvertTo-DriftRows $fakeDoc
-    Assert-That (@($fr).Count -eq 2 -and $fr[0].Status -eq 'Drifted' -and $fr[0].StatusColor -eq '#C62828' -and $fr[1].Note -match 'no longer in the catalog' -and $fr[1].Note -match 'no longer applicable') 'ConvertTo-DriftRows: status colour and the catalog / applicability notes'
+    Assert-That (@($fr).Count -eq 2 -and $fr[0].Status -eq 'Drifted' -and $fr[0].StatusColor -eq '#E57373' -and $fr[1].Note -match 'no longer in the catalog' -and $fr[1].Note -match 'no longer applicable') 'ConvertTo-DriftRows: status colour and the catalog / applicability notes'
     Assert-That ((Format-DriftSummary $fakeDoc) -match '2 applied tweak\(s\) in 2 snapshot\(s\): 1 in effect, 1 drifted \(1 step') 'Format-DriftSummary reads the summary'
     Assert-That ((Format-DriftSummary ([pscustomobject]@{ snapshots = 0; summary = [pscustomobject]@{ tweaks = 0 } })) -match 'nothing to compare') 'Format-DriftSummary: no snapshots is explained, not an error'
     $steps = ConvertTo-DriftStepRows $fr[0]
@@ -1571,7 +1877,7 @@ function Invoke-SelfTest {
         $cmp = Read-JsonObject $cm.Stdout 'Get-FootprintReport.ps1 -Compare'
         $cmpRows = ConvertTo-FootprintRows $cmp
         $pr = @($cmpRows | Where-Object { $_.Metric -eq 'Running processes' })[0]
-        Assert-That ($pr -and $pr.Before -eq '480' -and $pr.Now -eq '470' -and $pr.Change -eq '-10' -and $pr.Verdict -eq 'better' -and $pr.VerdictColor -eq '#2E7D32') 'ConvertTo-FootprintRows: 480 -> 470 processes is -10 and better'
+        Assert-That ($pr -and $pr.Before -eq '480' -and $pr.Now -eq '470' -and $pr.Change -eq '-10' -and $pr.Verdict -eq 'better' -and $pr.VerdictColor -eq '#81C784') 'ConvertTo-FootprintRows: 480 -> 470 processes is -10 and better'
         $fr2 = @($cmpRows | Where-Object { $_.Metric -eq 'System drive free' })[0]
         Assert-That ($fr2 -and $fr2.Before -eq '50.0 GB' -and $fr2.Now -eq '52.0 GB' -and $fr2.Change -eq '+2.0 GB') 'ConvertTo-FootprintRows: bytes are shown as GB with a sign'
         $hdr2 = Format-FootprintHeader $a $cmp
@@ -1671,7 +1977,11 @@ $script:Job = $null
 $script:Timer = New-Object System.Windows.Threading.DispatcherTimer
 $script:Timer.Interval = [TimeSpan]::FromMilliseconds(250)
 
-function New-Brush([string]$Hex) { (New-Object System.Windows.Media.BrushConverter).ConvertFromString($Hex) }
+function New-Brush([string]$Hex) {
+    $mapped = $script:DarkMap[$Hex.ToUpperInvariant()]
+    if ($mapped) { $Hex = $mapped }
+    (New-Object System.Windows.Media.BrushConverter).ConvertFromString($Hex)
+}
 
 function Set-Status([string]$Text) { (Get-Ctl 'txtStatus').Text = $Text }
 
@@ -1747,7 +2057,7 @@ function Update-Banner {
         if ($m.tenant) { $t += ' (tenant: ' + $m.tenant + ')' }
         $t += '. Policy keys may conflict with your organisation''s settings; update and time-sync tweaks are always skipped. Check with your IT admin before applying.'
         $txt.Text = $t
-        $banner.Background = New-Brush '#FFF3E0'; $banner.BorderBrush = New-Brush '#FFB74D'
+        $banner.Background = New-Brush '#FFF3E0'; $banner.BorderBrush = New-Brush '#8A6224'
         (Get-Ctl 'chkManaged').Visibility = 'Visible'
     } elseif ($m) {
         $txt.Text = 'This device does not look managed (not Entra ID joined, domain joined or MDM enrolled).'
@@ -1759,11 +2069,11 @@ function Update-Banner {
     $pfTxt.ToolTip = $(if ($script:Preflight) { Format-PreflightChecks $script:Preflight } else { $null })   # every gate with its detail
     (Get-Ctl 'txtFootprint').Text = Format-FootprintHeader $script:FpNow $script:FpBeforeRun
     $blocked = [bool]($script:Preflight -and (Get-Prop $script:Preflight 'blocked' $false))
-    $pfTxt.Foreground = New-Brush $(if ($blocked) { '#B26A00' } else { '#2E7D32' })
+    $pfTxt.Foreground = New-Brush $(if ($blocked) { $script:TextAmber } else { $script:TextGreen })
     (Get-Ctl 'chkSkipPreflight').Visibility = $(if ($blocked) { 'Visible' } else { 'Collapsed' })
     $el = Get-Ctl 'txtElevation'
-    if (Test-Elevated) { $el.Text = 'Elevated: yes'; $el.Foreground = New-Brush '#2E7D32' }
-    else { $el.Text = 'Elevated: no (UAC prompt when applying or undoing)'; $el.Foreground = New-Brush '#B26A00' }
+    if (Test-Elevated) { $el.Text = 'Elevated: yes'; $el.Foreground = New-Brush $script:TextGreen }
+    else { $el.Text = 'Elevated: no (UAC prompt when applying or undoing)'; $el.Foreground = New-Brush $script:TextAmber }
 }
 
 function Load-Data {
@@ -1862,9 +2172,13 @@ function Add-DetailText($Panel, [string]$Title, [string]$Text) {
 
 function Add-Badge($Panel, [string]$Text, [string]$Color) {
     $bd = New-Object System.Windows.Controls.Border
-    $bd.Background = New-Brush $Color; $bd.CornerRadius = 3; $bd.Padding = '7,2'; $bd.Margin = '0,0,6,4'
+    $bg = New-Brush $Color
+    $bd.Background = $bg; $bd.CornerRadius = 3; $bd.Padding = '7,2'; $bd.Margin = '0,0,6,4'
     $tb = New-Object System.Windows.Controls.TextBlock
-    $tb.Text = $Text; $tb.Foreground = [System.Windows.Media.Brushes]::White; $tb.FontSize = 11.5
+    # Risk/status colours are light text tints in the dark theme; put dark text on those badges.
+    $c = $bg.Color
+    $light = (0.299 * $c.R + 0.587 * $c.G + 0.114 * $c.B) -gt 150
+    $tb.Text = $Text; $tb.Foreground = $(if ($light) { New-Brush '#1B1C1F' } else { [System.Windows.Media.Brushes]::White }); $tb.FontSize = 11.5
     $bd.Child = $tb
     [void]$Panel.Children.Add($bd)
 }
