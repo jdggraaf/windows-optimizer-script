@@ -126,6 +126,21 @@ Ordering logic: reversible policy/HKCU keys done by many projects first, then sc
 - Hosts blocklists with unknown content (ReviOS) and unverified BBRv2/BCD tweaks.
 - Hibernate off and Ultimate-style plan on laptops (overheating reports); OneDrive uninstall without Known Folder Move undo.
 
+## Myths and corrections
+
+Checked against the ReviOS and tiny11 primary sources (2026-10-17); the catalog text follows these.
+
+- **"26/38"** (ReviOS docs) is one value: 0x26 = 38, `Win32PrioritySeparation=38`. The catalog entry is correct.
+- **`NetworkThrottlingIndex=10`** is the Windows default, so ReviOS's "network tweak" is a no-op. Not cataloged.
+- **HPET off / legacy boot menu / Last Known Good** are listed on revi.cc but no file in the ReviOS playbook implements them. Treat as stale or unverified; `perf-bootmenu-legacy` stays unverified.
+- **`AllowTelemetry=0`** is only honoured on Enterprise, Education and Server. On Pro and Business it behaves as 1 (Required data). `telemetry-allowtelemetry-policy` and `telemetry-datacollection-cv-policy` now carry an `appliesTo` note and the engine says so in the plan row on other editions.
+- **`SvcHostSplitThresholdInKB`**: ReviOS ships `recommended` (the Windows default `0x380000` plus per-service `SvcHostSplitDisable` pins), not the `0xFFFFFFFF` "forced" mode the old entry wrote. The pins live on TrustedInstaller-owned keys, which the engine never touches, so the entry was removed; a catalog migration resets the old value.
+- **Shutdown timeouts** (1500 / 2000 ms) are documented on revi.cc but appear in no playbook file, so they are unverified. `perf-shutdown-timeouts` keeps its values and says so (revi.cc gives 1500 ms for `WaitToKillServiceTimeout`, the entry uses 2000 ms).
+- **Ultra Performance plan**: current Revision Tool deletes the legacy plan GUID `3ff9831b-...` and uses `6a93ec26-...` plus processor thresholds. DebloatKit uses its own plan GUID; the thresholds are no-ops on CPUs with hardware P-states.
+- **Memory compression off** lowers the "in use" number by moving pages to the pagefile. It is accounting, not a gain, and harmful under commit pressure.
+- **`HKU\.DEFAULT`** is the LocalSystem profile, not the template for new users, so writing ContentDeliveryManager values there does not change new-account defaults.
+- **tiny11 deletes** its five telemetry task files. `task-telemetry-set` (safe) disables four of them reversibly; the fifth, the Compatibility Appraiser, is the separate `task-compat-appraiser-off` in the balanced preset because feature-update safeguard holds and Autopatch readiness depend on it.
+
 ## Sources (deduped, 36)
 
 - https://docs.atlasos.net/faq/install-faq/removed-features/

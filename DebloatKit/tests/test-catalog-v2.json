@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 2,
+  "catalogVersion": "test-1",
+  "migrations": [
+    {
+      "id": "mig-restore",
+      "tweakId": "v2-plain",
+      "path": "HKCU:\\Software\\DebloatKitTest\\V2",
+      "name": "MigOld",
+      "valueType": "DWord",
+      "oldValue": 4294967295,
+      "action": "restore-default",
+      "reason": "test: old catalog wrote 0xFFFFFFFF"
+    },
+    {
+      "id": "mig-rewrite",
+      "tweakId": "v2-plain",
+      "path": "HKCU:\\Software\\DebloatKitTest\\V2",
+      "name": "MigStr",
+      "valueType": "String",
+      "oldValue": "old",
+      "action": "rewrite",
+      "newValue": "new",
+      "reason": "test: catalog value changed"
+    },
+    {
+      "id": "mig-nomatch",
+      "tweakId": "v2-plain",
+      "path": "HKCU:\\Software\\DebloatKitTest\\V2",
+      "name": "Other",
+      "valueType": "DWord",
+      "oldValue": 5,
+      "action": "restore-default",
+      "reason": "test: current value differs, so this one must not be offered"
+    }
+  ],
+  "tweaks": [
+    {
+      "id": "v2-plain",
+      "category": "other",
+      "description": "Plain registry value.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\V2", "name": "Plain", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot",
+      "risk": "safe",
+      "preset": "safe"
+    },
+    {
+      "id": "v2-managed-skip",
+      "category": "other",
+      "description": "Skipped on managed devices.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\V2", "name": "ManagedSkipped", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot",
+      "risk": "safe",
+      "preset": "safe",
+      "managedSkip": "test reason: the organisation owns this"
+    },
+    {
+      "id": "v2-edition-skip",
+      "category": "other",
+      "description": "Only applies on Enterprise editions; skipped elsewhere.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\V2", "name": "EditionOnly", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot",
+      "risk": "safe",
+      "preset": "safe",
+      "appliesTo": { "editions": [ "Enterprise*", "Education*" ], "reason": "test: Enterprise only" }
+    },
+    {
+      "id": "v2-edition-note",
+      "category": "other",
+      "description": "Applied everywhere; other editions get a note.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\V2", "name": "EditionNote", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot",
+      "risk": "safe",
+      "preset": "safe",
+      "appliesTo": { "editions": [ "Enterprise*" ], "onMismatch": "note", "reason": "test: honoured on Enterprise only" }
+    },
+    {
+      "id": "v2-not-edition",
+      "category": "other",
+      "description": "Skipped on Professional.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\V2", "name": "NotPro", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot",
+      "risk": "safe",
+      "preset": "safe",
+      "appliesTo": { "notEditions": [ "Professional" ], "reason": "test: not on Professional" }
+    },
+    {
+      "id": "v2-min-build",
+      "category": "other",
+      "description": "Needs a build that does not exist yet.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\V2", "name": "FutureBuild", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot",
+      "risk": "safe",
+      "preset": "safe",
+      "appliesTo": { "minBuild": 99999, "reason": "test: needs build 99999" }
+    },
+    {
+      "id": "v2-dword-big",
+      "category": "other",
+      "description": "Unsigned 32-bit value above Int32.MaxValue.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\V2", "name": "Big", "valueType": "DWord", "value": 4294967295 },
+      "revert": "snapshot",
+      "risk": "safe",
+      "preset": "safe"
+    },
+    {
+      "id": "perf-ntfs-lastaccess",
+      "category": "performance",
+      "description": "Real native handler id; with -TestEnvironment it runs against the fake fsutil.",
+      "implementation": { "type": "command", "run": "fsutil behavior set disablelastaccess 1", "undo": "fsutil behavior set disablelastaccess 2" },
+      "revert": "snapshot",
+      "risk": "safe",
+      "preset": "safe"
+    }
+  ]
+}

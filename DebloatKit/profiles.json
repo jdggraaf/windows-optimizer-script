@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "description": "Setup profiles for DebloatKit-GUI.ps1 (Profiles tab). A profile is a starting point plus a few yes/no questions; the GUI resolves them to a list of tweak ids and ticks the ones the engine can run. Tweak lists per profile come from optionProfiles in appx-profiles.json (the same four names); this file adds the questions and the defaults. A profile may only contain ids from the catalog that are not never-default and not reduces-security (DebloatKit-GUI.ps1 -SelfTest and tests\\Test-Engine.ps1 check that). The engine's preset gate stays authoritative: ids in a preset that is not enabled are listed as 'not enabled in this version', never forced.",
+  "profiles": {
+    "work-managed": {
+      "title": "Work PC (managed)",
+      "optionProfile": "work-managed",
+      "minEffectiveness": 2,
+      "answers": { "work": true, "gaming": false, "laptop": null, "keepxbox": true, "keepphone": true, "appx": false }
+    },
+    "personal-desktop": {
+      "title": "Personal desktop",
+      "optionProfile": "personal-desktop",
+      "minEffectiveness": 1,
+      "answers": { "work": false, "gaming": false, "laptop": false, "keepxbox": true, "keepphone": true, "appx": false }
+    },
+    "personal-laptop": {
+      "title": "Personal laptop",
+      "optionProfile": "personal-laptop",
+      "minEffectiveness": 1,
+      "answers": { "work": false, "gaming": false, "laptop": true, "keepxbox": true, "keepphone": true, "appx": false }
+    },
+    "gaming-desktop": {
+      "title": "Gaming desktop",
+      "optionProfile": "gaming-desktop",
+      "minEffectiveness": 1,
+      "answers": { "work": false, "gaming": true, "laptop": false, "keepxbox": true, "keepphone": true, "appx": false }
+    }
+  },
+  "questions": [
+    {
+      "id": "work",
+      "text": "Work or managed PC?",
+      "hint": "Keeps the selection to safe, high-value tweaks and never plans app removal, extra power changes or component cleanup. Update, time sync and telemetry-pipeline tweaks are skipped by the engine on a managed device anyway.",
+      "auto": "managed",
+      "yes": { "force": { "appx": false }, "removeIds": [ "pwr-hiberfile-reduced", "pwr-hibernate-off", "pwr-ultra-performance-plan", "disk-component-cleanup", "comp-optional-features-legacy" ] },
+      "no": { }
+    },
+    {
+      "id": "gaming",
+      "text": "Gaming PC?",
+      "hint": "Adds the performance power plan and the per-user Game DVR / app capture switch off. The Xbox apps are not touched (see 'Keep Xbox').",
+      "yes": { "addIds": [ "gaming-gamedvr-appcapture-user-off", "pwr-ultra-performance-plan" ] },
+      "no": { }
+    },
+    {
+      "id": "laptop",
+      "text": "Laptop?",
+      "hint": "A laptop keeps Fast Startup, hibernate and its power plan; the hibernation file is reduced instead of removed, and no performance power plan is planned.",
+      "auto": "laptop",
+      "yes": { "addIds": [ "pwr-hiberfile-reduced" ], "removeIds": [ "pwr-hibernate-off", "pwr-ultra-performance-plan", "pwr-balanced-plan", "pwr-fast-startup-off" ] },
+      "no": { "addIds": [ "pwr-hibernate-off" ], "removeIds": [ "pwr-hiberfile-reduced" ] }
+    },
+    {
+      "id": "keepxbox",
+      "text": "Keep Xbox and the gaming overlay apps?",
+      "hint": "Only matters when app removal is chosen. No plans the Xbox AppX removal tweak (aggressive preset).",
+      "yes": { "removeIds": [ "appx-xbox-gaming" ] },
+      "no": { "addIds": [ "appx-xbox-gaming" ], "requiresAppx": true }
+    },
+    {
+      "id": "keepphone",
+      "text": "Keep Phone Link?",
+      "hint": "Only matters when app removal is chosen. No plans the Phone Link / Cross Device AppX removal tweak.",
+      "yes": { "removeIds": [ "appx-crossdevice-yourphone" ] },
+      "no": { "addIds": [ "appx-crossdevice-yourphone" ], "requiresAppx": true }
+    },
+    {
+      "id": "appx",
+      "text": "Also remove preinstalled consumer apps (AppX)?",
+      "hint": "Plans the keep-personal AppX profile (keep-work on a work PC). Removed apps have no exact undo: they must be reinstalled from the Store. The GUI never passes -AllowIrreversible and the preset is not enabled in this version, so this is shown as a plan only.",
+      "yes": { "requiresAck": "I understand these apps must be reinstalled from the Store (no exact undo)" },
+      "no": { }
+    }
+  ]
+}

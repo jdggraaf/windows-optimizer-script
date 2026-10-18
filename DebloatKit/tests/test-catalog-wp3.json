@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 2,
+  "catalogVersion": "test-wp3",
+  "migrations": [],
+  "tweaks": [
+    {
+      "id": "disk-compactos-on",
+      "category": "performance",
+      "description": "Test copy of the real native handler id (preset safe so the engine considers it).",
+      "implementation": { "type": "command", "run": "compact /CompactOS:always", "undo": "compact /CompactOS:never", "weight": 30, "order": 300 },
+      "revert": "compact /CompactOS:never", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "pwr-hibernate-off",
+      "category": "power",
+      "description": "Desktops only.",
+      "implementation": { "type": "command", "run": "powercfg /hibernate off", "undo": "powercfg /hibernate on" },
+      "revert": "powercfg /hibernate on", "risk": "safe", "preset": "safe",
+      "appliesTo": { "requiresDesktop": true, "reason": "test: laptops keep hibernate" }
+    },
+    {
+      "id": "pwr-hiberfile-reduced",
+      "category": "power",
+      "description": "Reduced hibernation file.",
+      "implementation": { "type": "command", "run": "powercfg /hibernate /type reduced", "undo": "powercfg /hibernate /type full" },
+      "revert": "powercfg /hibernate /type full", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "perf-reserved-storage-off",
+      "category": "performance",
+      "description": "Reserved storage off.",
+      "implementation": { "type": "command", "run": "DISM /Online /Set-ReservedStorageState /State:Disabled", "undo": "DISM /Online /Set-ReservedStorageState /State:Enabled", "weight": 6, "order": 200 },
+      "revert": "DISM /Online /Set-ReservedStorageState /State:Enabled", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "disk-component-cleanup",
+      "category": "performance",
+      "description": "Irreversible native handler (gated by -AllowIrreversible).",
+      "implementation": { "type": "command", "run": "DISM /Online /Cleanup-Image /StartComponentCleanup", "undo": null, "weight": 15, "order": 310 },
+      "revert": "not reversible", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "pwr-ultra-performance-plan",
+      "category": "power",
+      "description": "DebloatKit-owned performance plan.",
+      "implementation": { "type": "command", "run": "powercfg /duplicatescheme ...", "undo": "powercfg /setactive <prior>" },
+      "revert": "powercfg /setactive <prior>", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "perf-memory-compression-off",
+      "category": "performance",
+      "description": "Memory compression off.",
+      "implementation": { "type": "command", "run": "Disable-MMAgent -mc", "undo": "Enable-MMAgent -mc" },
+      "revert": "Enable-MMAgent -mc", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "perf-ntfs-8dot3-off",
+      "category": "performance",
+      "description": "System-wide 8.3 setting.",
+      "implementation": { "type": "command", "run": "fsutil behavior set disable8dot3 1", "undo": "fsutil behavior set disable8dot3 <prior>" },
+      "revert": "fsutil behavior set disable8dot3 <prior>", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "perf-ntfs-8dot3-volume-off",
+      "category": "performance",
+      "description": "Per-volume 8.3 setting (one row per volume).",
+      "implementation": { "type": "command", "run": "fsutil 8dot3name set <volume> 1", "undo": "fsutil 8dot3name set <volume> <prior>", "target": "*" },
+      "revert": "fsutil 8dot3name set <volume> <prior>", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "perf-sleepstudy-off",
+      "category": "performance",
+      "description": "Three event channels, one plan row each.",
+      "implementation": {
+        "type": "multi",
+        "steps": [
+          { "type": "command", "run": "wevtutil sl ... /e:false", "undo": "wevtutil sl ... /e:true", "target": "Microsoft-Windows-SleepStudy/Diagnostic" },
+          { "type": "command", "run": "wevtutil sl ... /e:false", "undo": "wevtutil sl ... /e:true", "target": "Microsoft-Windows-Kernel-Processor-Power/Diagnostic" },
+          { "type": "command", "run": "wevtutil sl ... /e:false", "undo": "wevtutil sl ... /e:true", "target": "Microsoft-Windows-UserModePowerService/Diagnostic" }
+        ]
+      },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "perf-bootmenu-legacy",
+      "category": "performance",
+      "description": "Legacy boot menu policy.",
+      "implementation": { "type": "command", "run": "bcdedit /set {current} bootmenupolicy legacy", "undo": "bcdedit /deletevalue {current} bootmenupolicy" },
+      "revert": "bcdedit /deletevalue {current} bootmenupolicy", "risk": "safe", "preset": "safe"
+    }
+  ]
+}

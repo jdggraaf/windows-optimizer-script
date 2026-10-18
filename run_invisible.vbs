@@ -1,17 +1,21 @@
-' Auto-elevating VBS to run clear_ram_loop.bat as Administrator
+' Starts the DebloatKit GUI without a console window.
+' No elevation here: the GUI is a front end and asks for administrator rights (UAC) only
+' when you apply or undo something. /check = print the command, start nothing (used by the tests).
 
-If Not WScript.Arguments.Named.Exists("elevated") Then
-    ' Relaunch the script with admin privileges
-    Set shell = CreateObject("Shell.Application")
-    shell.ShellExecute "wscript.exe", Chr(34) & _
-        WScript.ScriptFullName & Chr(34) & " /elevated", "", "runas", 1
-    WScript.Quit
+Dim fso, scriptDir, gui, cmd
+Set fso = CreateObject("Scripting.FileSystemObject")
+scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
+gui = scriptDir & "\DebloatKit\DebloatKit-GUI.ps1"
+cmd = "powershell.exe -NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File " & Chr(34) & gui & Chr(34)
+
+If WScript.Arguments.Named.Exists("check") Then
+    WScript.Echo "would run: " & cmd
+    WScript.Quit 0
 End If
 
-' Now run the batch file from the same folder
-Dim scriptPath
-scriptPath = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)
+If Not fso.FileExists(gui) Then
+    MsgBox "DebloatKit\DebloatKit-GUI.ps1 was not found next to this file.", 16, "DebloatKit"
+    WScript.Quit 1
+End If
 
-Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run Chr(34) & scriptPath & "\clear_ram_loop.bat" & Chr(34), 1
-Set WshShell = Nothing
+CreateObject("WScript.Shell").Run cmd, 0, False

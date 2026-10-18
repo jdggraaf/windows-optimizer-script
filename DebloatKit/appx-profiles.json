@@ -1,0 +1,414 @@
+{
+  "schemaVersion": 1,
+  "profilesVersion": "2026.10.17.1",
+  "description": "AppX keep profiles, framework hints and reinstall data for DebloatKit. A catalog appx step with \"profile\": \"<name>\" removes the profile's remove list minus its keep list (exact package names; never a protected package).",
+  "note": "Store product ids are taken from public Store listings and were not checked with winget on this machine. Confirm one with: winget show --id <id> -s msstore. Packages without an id get a winget search hint in the reinstall manifest instead.",
+  "managedKeep": [
+    "MSTeams",
+    "MicrosoftTeams",
+    "Microsoft.OutlookForWindows",
+    "MicrosoftCorporationII.QuickAssist",
+    "Microsoft.MicrosoftOfficeHub"
+  ],
+  "frameworks": [
+    {
+      "pattern": "Microsoft.VCLibs*",
+      "label": "Visual C++ runtime framework",
+      "storeIds": [
+        "9NBLGGH3FRZM",
+        "9NBLGGH4RV3K"
+      ]
+    },
+    {
+      "pattern": "Microsoft.UI.Xaml*",
+      "label": "WinUI (XAML) framework",
+      "storeIds": []
+    },
+    {
+      "pattern": "Microsoft.NET.Native*",
+      "label": ".NET Native framework",
+      "storeIds": []
+    },
+    {
+      "pattern": "Microsoft.WindowsAppRuntime*",
+      "label": "Windows App SDK runtime",
+      "storeIds": []
+    },
+    {
+      "pattern": "Microsoft.DesktopAppInstaller",
+      "label": "App Installer (winget)",
+      "storeIds": [
+        "9NBLGGH4NNS1"
+      ]
+    },
+    {
+      "pattern": "Microsoft.WindowsStore",
+      "label": "Microsoft Store",
+      "storeIds": [
+        "9WZDNCRFJBMP"
+      ]
+    }
+  ],
+  "packages": {
+    "Microsoft.WindowsStore": {
+      "display": "Microsoft Store",
+      "storeId": "9WZDNCRFJBMP",
+      "wingetId": null
+    },
+    "Microsoft.DesktopAppInstaller": {
+      "display": "App Installer (winget)",
+      "storeId": "9NBLGGH4NNS1",
+      "wingetId": null
+    },
+    "Microsoft.WindowsTerminal": {
+      "display": "Windows Terminal",
+      "storeId": "9N0DX20HK701",
+      "wingetId": "Microsoft.WindowsTerminal"
+    },
+    "Microsoft.WindowsCalculator": {
+      "display": "Calculator",
+      "storeId": "9WZDNCRFHVDT",
+      "wingetId": null
+    },
+    "Microsoft.WindowsNotepad": {
+      "display": "Notepad",
+      "storeId": "9MSMLRH6LZF3",
+      "wingetId": null
+    },
+    "Microsoft.ScreenSketch": {
+      "display": "Snipping Tool",
+      "storeId": "9MZ95KL8MR0L",
+      "wingetId": null
+    },
+    "Microsoft.Paint": {
+      "display": "Paint",
+      "storeId": "9PCFS5B6T72H",
+      "wingetId": null
+    },
+    "Microsoft.MSPaint": {
+      "display": "Paint 3D (legacy)",
+      "storeId": null,
+      "wingetId": null
+    },
+    "Microsoft.Windows.Photos": {
+      "display": "Photos",
+      "storeId": "9WZDNCRFJBH4",
+      "wingetId": null
+    },
+    "Microsoft.WindowsCamera": {
+      "display": "Camera",
+      "storeId": "9WZDNCRFJBBG",
+      "wingetId": null
+    },
+    "Clipchamp.Clipchamp": {
+      "display": "Clipchamp",
+      "storeId": "9P1J8S7CCWWT",
+      "wingetId": null
+    },
+    "Microsoft.OutlookForWindows": {
+      "display": "Outlook (new)",
+      "storeId": "9NRX63209R7B",
+      "wingetId": null
+    },
+    "MSTeams": {
+      "display": "Microsoft Teams (new)",
+      "storeId": null,
+      "wingetId": null
+    },
+    "MicrosoftTeams": {
+      "display": "Microsoft Teams (personal)",
+      "storeId": null,
+      "wingetId": null
+    },
+    "Microsoft.MicrosoftStickyNotes": {
+      "display": "Sticky Notes",
+      "storeId": "9NBLGGH4QGHW",
+      "wingetId": null
+    },
+    "Microsoft.YourPhone": {
+      "display": "Phone Link",
+      "storeId": "9NMPJ99VJBWV",
+      "wingetId": null
+    },
+    "Microsoft.BingNews": {
+      "display": "Microsoft News",
+      "storeId": "9WZDNCRFHVFW",
+      "wingetId": null
+    },
+    "Microsoft.BingWeather": {
+      "display": "Weather",
+      "storeId": "9WZDNCRFJ3Q2",
+      "wingetId": null
+    },
+    "Microsoft.WindowsFeedbackHub": {
+      "display": "Feedback Hub",
+      "storeId": "9NBLGGH4R32N",
+      "wingetId": null
+    },
+    "Microsoft.MicrosoftSolitaireCollection": {
+      "display": "Solitaire Collection",
+      "storeId": "9WZDNCRFHWD2",
+      "wingetId": null
+    },
+    "Microsoft.Todos": {
+      "display": "Microsoft To Do",
+      "storeId": "9NBLGGH5R558",
+      "wingetId": null
+    },
+    "MicrosoftCorporationII.QuickAssist": {
+      "display": "Quick Assist",
+      "storeId": "9P7BP5VNWKX5",
+      "wingetId": null
+    },
+    "Microsoft.MicrosoftOfficeHub": {
+      "display": "Microsoft 365 (Office) hub",
+      "storeId": "9WZDNCRD29V9",
+      "wingetId": null
+    },
+    "Microsoft.WindowsAlarms": {
+      "display": "Clock",
+      "storeId": "9WZDNCRFJ3PR",
+      "wingetId": null
+    },
+    "Microsoft.WindowsSoundRecorder": {
+      "display": "Sound Recorder",
+      "storeId": "9WZDNCRFHWKN",
+      "wingetId": null
+    },
+    "Microsoft.ZuneMusic": {
+      "display": "Media Player",
+      "storeId": "9WZDNCRFJ3PT",
+      "wingetId": null
+    },
+    "Microsoft.PowerAutomateDesktop": {
+      "display": "Power Automate",
+      "storeId": "9NFTCH6J7FHV",
+      "wingetId": null
+    },
+    "Microsoft.GetHelp": {
+      "display": "Get Help",
+      "storeId": null,
+      "wingetId": null
+    },
+    "Microsoft.Windows.DevHome": {
+      "display": "Dev Home",
+      "storeId": null,
+      "wingetId": null
+    }
+  },
+  "profiles": {
+    "keep-work": {
+      "description": "Work PC: keeps Teams, Outlook, Quick Assist (helpdesk remote support), the Microsoft 365 app, Terminal, Paint, Snipping Tool, Camera, Calculator and Notepad; removes consumer and promotional apps.",
+      "keep": [
+        "MSTeams",
+        "MicrosoftTeams",
+        "Microsoft.OutlookForWindows",
+        "MicrosoftCorporationII.QuickAssist",
+        "Microsoft.MicrosoftOfficeHub",
+        "Microsoft.WindowsTerminal",
+        "Microsoft.Paint",
+        "Microsoft.MSPaint",
+        "Microsoft.ScreenSketch",
+        "Microsoft.WindowsCamera",
+        "Microsoft.WindowsCalculator",
+        "Microsoft.WindowsNotepad",
+        "Microsoft.Windows.Photos"
+      ],
+      "remove": [
+        "Clipchamp.Clipchamp",
+        "Microsoft.BingNews",
+        "Microsoft.BingWeather",
+        "Microsoft.BingSearch",
+        "Microsoft.GetHelp",
+        "Microsoft.Getstarted",
+        "Microsoft.MicrosoftOfficeHub",
+        "Microsoft.MicrosoftSolitaireCollection",
+        "Microsoft.MixedReality.Portal",
+        "Microsoft.Microsoft3DViewer",
+        "Microsoft.SkypeApp",
+        "Microsoft.PowerAutomateDesktop",
+        "Microsoft.Todos",
+        "Microsoft.WindowsFeedbackHub",
+        "Microsoft.ZuneMusic",
+        "Microsoft.ZuneVideo",
+        "Microsoft.549981C3F5F10",
+        "Microsoft.Windows.DevHome",
+        "MicrosoftCorporationII.MicrosoftFamily",
+        "Microsoft.People",
+        "Microsoft.Wallet",
+        "Microsoft.Office.OneNote",
+        "MicrosoftTeams",
+        "MSTeams",
+        "Disney.37853FC22B2CE",
+        "SpotifyAB.SpotifyMusic",
+        "Microsoft.OutlookForWindows",
+        "Microsoft.YourPhone",
+        "Microsoft.Windows.CrossDevice",
+        "Microsoft.MicrosoftStickyNotes",
+        "Microsoft.WindowsAlarms",
+        "Microsoft.WindowsSoundRecorder",
+        "Microsoft.WindowsCamera",
+        "Microsoft.Paint",
+        "Microsoft.MSPaint",
+        "Microsoft.ScreenSketch",
+        "Microsoft.WindowsTerminal",
+        "MicrosoftCorporationII.QuickAssist",
+        "Microsoft.WindowsCalculator",
+        "Microsoft.Windows.Photos",
+        "Microsoft.WindowsNotepad"
+      ]
+    },
+    "keep-personal": {
+      "description": "Personal PC: keeps the everyday tools (Photos, Calculator, Notepad, Terminal, Paint, Snipping Tool, Camera, Sticky Notes, Clock, Sound Recorder, Phone Link, Media Player); removes promotional apps, Teams and Outlook.",
+      "keep": [
+        "Microsoft.Windows.Photos",
+        "Microsoft.WindowsCalculator",
+        "Microsoft.WindowsNotepad",
+        "Microsoft.WindowsTerminal",
+        "Microsoft.Paint",
+        "Microsoft.MSPaint",
+        "Microsoft.ScreenSketch",
+        "Microsoft.WindowsCamera",
+        "Microsoft.MicrosoftStickyNotes",
+        "Microsoft.WindowsAlarms",
+        "Microsoft.WindowsSoundRecorder",
+        "Microsoft.YourPhone",
+        "Microsoft.Windows.CrossDevice",
+        "Microsoft.ZuneMusic"
+      ],
+      "remove": [
+        "Clipchamp.Clipchamp",
+        "Microsoft.BingNews",
+        "Microsoft.BingWeather",
+        "Microsoft.BingSearch",
+        "Microsoft.GetHelp",
+        "Microsoft.Getstarted",
+        "Microsoft.MicrosoftOfficeHub",
+        "Microsoft.MicrosoftSolitaireCollection",
+        "Microsoft.MixedReality.Portal",
+        "Microsoft.Microsoft3DViewer",
+        "Microsoft.SkypeApp",
+        "Microsoft.PowerAutomateDesktop",
+        "Microsoft.Todos",
+        "Microsoft.WindowsFeedbackHub",
+        "Microsoft.ZuneMusic",
+        "Microsoft.ZuneVideo",
+        "Microsoft.549981C3F5F10",
+        "Microsoft.Windows.DevHome",
+        "MicrosoftCorporationII.MicrosoftFamily",
+        "Microsoft.People",
+        "Microsoft.Wallet",
+        "Microsoft.Office.OneNote",
+        "MicrosoftTeams",
+        "MSTeams",
+        "Disney.37853FC22B2CE",
+        "SpotifyAB.SpotifyMusic",
+        "Microsoft.OutlookForWindows",
+        "Microsoft.YourPhone",
+        "Microsoft.Windows.CrossDevice",
+        "Microsoft.MicrosoftStickyNotes",
+        "Microsoft.WindowsAlarms",
+        "Microsoft.WindowsSoundRecorder",
+        "Microsoft.WindowsCamera",
+        "Microsoft.Paint",
+        "Microsoft.MSPaint",
+        "Microsoft.ScreenSketch",
+        "Microsoft.WindowsTerminal",
+        "MicrosoftCorporationII.QuickAssist",
+        "Microsoft.WindowsCalculator",
+        "Microsoft.Windows.Photos",
+        "Microsoft.WindowsNotepad"
+      ]
+    },
+    "minimal": {
+      "description": "Minimal: keeps only Calculator, Notepad, Photos, Snipping Tool and Terminal.",
+      "keep": [
+        "Microsoft.WindowsCalculator",
+        "Microsoft.WindowsNotepad",
+        "Microsoft.Windows.Photos",
+        "Microsoft.ScreenSketch",
+        "Microsoft.WindowsTerminal"
+      ],
+      "remove": [
+        "Clipchamp.Clipchamp",
+        "Microsoft.BingNews",
+        "Microsoft.BingWeather",
+        "Microsoft.BingSearch",
+        "Microsoft.GetHelp",
+        "Microsoft.Getstarted",
+        "Microsoft.MicrosoftOfficeHub",
+        "Microsoft.MicrosoftSolitaireCollection",
+        "Microsoft.MixedReality.Portal",
+        "Microsoft.Microsoft3DViewer",
+        "Microsoft.SkypeApp",
+        "Microsoft.PowerAutomateDesktop",
+        "Microsoft.Todos",
+        "Microsoft.WindowsFeedbackHub",
+        "Microsoft.ZuneMusic",
+        "Microsoft.ZuneVideo",
+        "Microsoft.549981C3F5F10",
+        "Microsoft.Windows.DevHome",
+        "MicrosoftCorporationII.MicrosoftFamily",
+        "Microsoft.People",
+        "Microsoft.Wallet",
+        "Microsoft.Office.OneNote",
+        "MicrosoftTeams",
+        "MSTeams",
+        "Disney.37853FC22B2CE",
+        "SpotifyAB.SpotifyMusic",
+        "Microsoft.OutlookForWindows",
+        "Microsoft.YourPhone",
+        "Microsoft.Windows.CrossDevice",
+        "Microsoft.MicrosoftStickyNotes",
+        "Microsoft.WindowsAlarms",
+        "Microsoft.WindowsSoundRecorder",
+        "Microsoft.WindowsCamera",
+        "Microsoft.Paint",
+        "Microsoft.MSPaint",
+        "Microsoft.ScreenSketch",
+        "Microsoft.WindowsTerminal",
+        "MicrosoftCorporationII.QuickAssist",
+        "Microsoft.WindowsCalculator",
+        "Microsoft.Windows.Photos",
+        "Microsoft.WindowsNotepad"
+      ]
+    }
+  },
+  "optionProfiles": {
+    "work-managed": {
+      "description": "Entra-joined or managed work PC: safe preset only, managed-device skips apply, no AppX removal.",
+      "appxProfile": null,
+      "tweakIds": []
+    },
+    "personal-desktop": {
+      "description": "Personal desktop: legacy components, hibernation file off, component store cleanup, keep-personal apps.",
+      "appxProfile": "keep-personal",
+      "tweakIds": [
+        "comp-optional-features-legacy",
+        "pwr-hibernate-off",
+        "disk-component-cleanup",
+        "appx-profile-keep-personal"
+      ]
+    },
+    "personal-laptop": {
+      "description": "Personal laptop: no power plan change and no hibernate off (Fast Startup and hibernate stay); reduced hibernation file instead.",
+      "appxProfile": "keep-personal",
+      "tweakIds": [
+        "comp-optional-features-legacy",
+        "pwr-hiberfile-reduced",
+        "disk-component-cleanup",
+        "appx-profile-keep-personal"
+      ]
+    },
+    "gaming-desktop": {
+      "description": "Gaming desktop: as personal-desktop plus the performance power plan; Xbox apps are not touched.",
+      "appxProfile": "keep-personal",
+      "tweakIds": [
+        "comp-optional-features-legacy",
+        "pwr-hibernate-off",
+        "pwr-ultra-performance-plan",
+        "appx-profile-keep-personal"
+      ]
+    }
+  }
+}

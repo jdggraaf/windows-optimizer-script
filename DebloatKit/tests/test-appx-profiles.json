@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "profilesVersion": "test",
+  "description": "Test profiles (fake inventory names only).",
+  "managedKeep": [ "MSTeams", "Microsoft.OutlookForWindows" ],
+  "frameworks": [
+    { "pattern": "Microsoft.VCLibs*", "label": "VC++ runtime", "storeIds": [ "9NBLGGH3FRZM", "9NBLGGH4RV3K" ] },
+    { "pattern": "Microsoft.UI.Xaml*", "label": "WinUI", "storeIds": [] }
+  ],
+  "packages": {
+    "Microsoft.BingNews": { "display": "Microsoft News", "storeId": "9WZDNCRFHVFW", "wingetId": null },
+    "Microsoft.ZuneMusic": { "display": "Media Player", "storeId": null, "wingetId": null }
+  },
+  "profiles": {
+    "test-work": { "description": "Keeps Paint.", "keep": [ "Microsoft.Paint" ], "remove": [ "Microsoft.BingNews", "Microsoft.ZuneMusic", "Clipchamp.Clipchamp", "MSTeams", "Microsoft.OutlookForWindows", "Microsoft.Paint", "Not.Installed.App" ] },
+    "test-min": { "description": "Keeps nothing.", "keep": [], "remove": [ "Microsoft.BingNews", "Microsoft.Paint" ] }
+  },
+  "optionProfiles": {
+    "work-managed": { "description": "Safe only.", "appxProfile": null, "tweakIds": [] }
+  }
+}

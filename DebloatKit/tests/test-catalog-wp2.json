@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 2,
+  "catalogVersion": "test-wp2",
+  "migrations": [],
+  "tweaks": [
+    {
+      "id": "p-plain",
+      "category": "other",
+      "description": "Default order (100).",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "Plain", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-late",
+      "category": "other",
+      "description": "Listed second, runs last (order 200).",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "Late", "valueType": "DWord", "value": 1, "order": 200 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-early",
+      "category": "other",
+      "description": "Listed third, runs first (order 10).",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "Early", "valueType": "DWord", "value": 1, "order": 10 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-weight",
+      "category": "other",
+      "description": "Explicit step weight.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "Heavy", "valueType": "DWord", "value": 1, "weight": 7 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-stop",
+      "category": "other",
+      "description": "Second step fails with stop-tweak: the third step must not run.",
+      "implementation": {
+        "type": "multi",
+        "steps": [
+          { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "StopA", "valueType": "DWord", "value": 1 },
+          { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "StopB", "valueType": "DWord", "value": 1, "onError": "stop-tweak" },
+          { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "StopC", "valueType": "DWord", "value": 1 }
+        ]
+      },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-cont",
+      "category": "other",
+      "description": "Second step fails with the default policy (continue): the third step still runs.",
+      "implementation": {
+        "type": "multi",
+        "steps": [
+          { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "ContA", "valueType": "DWord", "value": 1 },
+          { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "ContB", "valueType": "DWord", "value": 1 },
+          { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "ContC", "valueType": "DWord", "value": 1 }
+        ]
+      },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-abort",
+      "category": "other",
+      "description": "Fails with abort-run at order 150: later steps must not run.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "AbortStep", "valueType": "DWord", "value": 1, "order": 150, "onError": "abort-run" },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-laptop",
+      "category": "other",
+      "description": "Laptops only.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "LaptopOnly", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe",
+      "appliesTo": { "requiresLaptop": true, "reason": "test: battery setting" }
+    },
+    {
+      "id": "p-desktop",
+      "category": "other",
+      "description": "Desktops only.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "DesktopOnly", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe",
+      "appliesTo": { "requiresDesktop": true, "reason": "test: always-on setting" }
+    },
+    {
+      "id": "p-buildrange",
+      "category": "other",
+      "description": "Only builds 22000 to 26100.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\P", "name": "BuildRange", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe",
+      "appliesTo": { "minBuild": 22000, "maxBuild": 26100, "reason": "test: broken after 26100" }
+    },
+    {
+      "id": "p-prot-svc",
+      "category": "other",
+      "description": "Protected service (AppXSvc): the engine must skip it.",
+      "implementation": { "type": "service", "name": "AppXSvc", "startType": "Disabled" },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-prot-svc-locked",
+      "category": "other",
+      "description": "Service whose key is write-protected (faked by the test environment).",
+      "implementation": { "type": "service", "name": "Spooler", "startType": "Disabled" },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-prot-appx",
+      "category": "other",
+      "description": "Protected packages: by name and by wildcard.",
+      "implementation": { "type": "appx", "names": [ "Microsoft.WindowsStore", "Microsoft.UI.Xaml*" ] },
+      "revert": "not reversible", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-prot-reg-defender",
+      "category": "other",
+      "description": "Turns Defender off through policy: protected.",
+      "implementation": { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender", "name": "DisableAntiSpyware", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-prot-reg-vbs",
+      "category": "other",
+      "description": "Turns VBS off: protected.",
+      "implementation": { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard", "name": "EnableVirtualizationBasedSecurity", "valueType": "DWord", "value": 0 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-prot-reg-svckey",
+      "category": "other",
+      "description": "Writes a protected service's Start value directly: protected.",
+      "implementation": { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\WinDefend", "name": "Start", "valueType": "DWord", "value": 4 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "p-prot-task",
+      "category": "other",
+      "description": "Update Orchestrator tasks: protected.",
+      "implementation": { "type": "task", "path": "\\Microsoft\\Windows\\UpdateOrchestrator\\", "name": "*", "state": "Disabled" },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    }
+  ]
+}

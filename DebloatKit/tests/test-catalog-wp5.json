@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 2,
+  "catalogVersion": "test-wp5",
+  "migrations": [],
+  "tweaks": [
+    {
+      "id": "w5-a", "category": "other", "description": "Changes a value that already exists (A is 5 before).",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\WP5", "name": "A", "valueType": "DWord", "value": 1 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w5-b", "category": "other", "description": "Creates a value that did not exist.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\WP5", "name": "B", "valueType": "DWord", "value": 2 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w5-multi", "category": "other", "description": "Two steps, one of them creates a new key.",
+      "implementation": { "type": "multi", "steps": [
+        { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\WP5\\Deep", "name": "C", "valueType": "DWord", "value": 3 },
+        { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\WP5", "name": "D", "valueType": "String", "value": "four" } ] },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w5-na", "category": "other", "description": "Only applies up to build 26100.",
+      "implementation": { "type": "registry", "path": "HKCU:\\Software\\DebloatKitTest\\WP5", "name": "E", "valueType": "DWord", "value": 5 },
+      "revert": "snapshot", "risk": "safe", "preset": "safe",
+      "appliesTo": { "maxBuild": 26100, "reason": "test: only up to build 26100" }
+    },
+    {
+      "id": "perf-ntfs-lastaccess", "category": "performance", "description": "Real native handler id; runs against the fake fsutil.",
+      "implementation": { "type": "command", "run": "fsutil behavior set disablelastaccess 1", "undo": "fsutil behavior set disablelastaccess 2" },
+      "revert": "snapshot", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w5-cap", "category": "components", "description": "Capability removal (fake tool).",
+      "implementation": { "type": "capability", "name": "Microsoft.Windows.WordPad" },
+      "revert": "Add-WindowsCapability", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w5-feat", "category": "components", "description": "Optional feature disable (fake tool).",
+      "implementation": { "type": "optionalfeature", "name": "Internet-Explorer-Optional-amd64" },
+      "revert": "Enable-WindowsOptionalFeature", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w5-appx", "category": "appx", "description": "AppX removal (fake tool); needs -AllowIrreversible, never revertible.",
+      "implementation": { "type": "appx", "names": [ "Microsoft.BingNews" ] },
+      "revert": "not reversible", "risk": "safe", "preset": "safe"
+    }
+  ]
+}

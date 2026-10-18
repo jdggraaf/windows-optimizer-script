@@ -1,73 +1,40 @@
 @echo off
-title Windows Optimizer Script
-color 0A
+title clear_ram_loop.bat (retired)
+color 0E
+rem Retired. This file used to disable Windows Update, UsoSvc and BITS, then loop every 10 seconds
+rem (temp purge, working-set trim, taskkill, RAMMap standby purge). None of that is done any more.
+rem /noop = print the message and the launch command, start nothing (used by the tests).
 
-:: === One-time: Disable Windows Updates ===
-echo [*] Disabling Windows Updates...
-sc stop wuauserv >nul 2>&1
-sc config wuauserv start= disabled >nul 2>&1
-sc stop UsoSvc >nul 2>&1
-sc config UsoSvc start= disabled >nul 2>&1
-sc stop bits >nul 2>&1
-sc config bits start= disabled >nul 2>&1
-
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v NoAutoUpdate /t REG_DWORD /d 1 /f >nul
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v AUOptions /t REG_DWORD /d 1 /f >nul
-reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f >nul
-
-schtasks /Change /TN "Microsoft\Windows\WindowsUpdate\Scheduled Start" /Disable >nul 2>&1
-schtasks /Change /TN "Microsoft\Windows\WindowsUpdate\sih" /Disable >nul 2>&1
-schtasks /Change /TN "Microsoft\Windows\WindowsUpdate\sihboot" /Disable >nul 2>&1
-
-echo [✓] Windows Update Disabled.
+echo ============================================================
+echo  clear_ram_loop.bat has been retired
+echo ============================================================
+echo.
+echo  It no longer disables Windows Update, UsoSvc or BITS, and it no longer
+echo  loops. Those steps removed security updates, broke Intune, Defender
+echo  signature updates and Delivery Optimization, and the 10 second standby
+echo  purge only threw away useful cache.
+echo.
+echo  Use DebloatKit instead. Every change is previewed, reversible and safe by default:
+echo    GUI:      DebloatKit\DebloatKit-GUI.ps1
+echo    Preview:  DebloatKit\DebloatKit.ps1 -WhatIf
+echo    Memory:   DebloatKit\Get-MemoryPressure.ps1   (read-only, tells you if you really need more RAM)
+echo.
+echo  Used the old script before? Run revert.bat as Administrator to restore
+echo  Windows Update, UsoSvc and BITS.
 echo.
 
-:loop
-echo ============================
-echo [*] Starting Optimization Loop
-echo ============================
+if /i "%~1"=="/noop" (
+    echo [noop] would run: powershell -NoProfile -ExecutionPolicy Bypass -STA -File "%~dp0DebloatKit\DebloatKit-GUI.ps1"
+    exit /b 0
+)
 
-:: === Show RAM usage before ===
-echo [*] RAM Usage Before:
-powershell -command "Get-CimInstance Win32_OperatingSystem | ForEach-Object { Write-Output ('Used: {0:N2} GB / Total: {1:N2} GB' -f (($_.TotalVisibleMemorySize - $_.FreePhysicalMemory)/1MB), ($_.TotalVisibleMemorySize/1MB)) }"
+if not exist "%~dp0DebloatKit\DebloatKit-GUI.ps1" (
+    echo [!] DebloatKit\DebloatKit-GUI.ps1 was not found next to this file.
+    echo     Open a PowerShell in the DebloatKit folder and run .\DebloatKit-GUI.ps1
+    pause
+    exit /b 1
+)
 
-:: === Clean temp folders ===
-echo [*] Cleaning temp folders...
-del /q /f /s %TEMP%\* >nul 2>&1
-del /q /f /s C:\Windows\Temp\* >nul 2>&1
-
-:: === Flush DNS ===
-echo [*] Flushing DNS cache...
-ipconfig /flushdns >nul
-
-:: === Clear RAM ===
-echo [*] Attempting RAM Trim...
-powershell -command "Get-Process | Where-Object { $_.Id -ne $PID } | ForEach-Object { try { $_.MinWorkingSet = $_.MinWorkingSet } catch {} }"
-
-:: === Show RAM usage after ===
-echo [*] RAM Usage After:
-powershell -command "Get-CimInstance Win32_OperatingSystem | ForEach-Object { Write-Output ('Used: {0:N2} GB / Total: {1:N2} GB' -f (($_.TotalVisibleMemorySize - $_.FreePhysicalMemory)/1MB), ($_.TotalVisibleMemorySize/1MB)) }"
-
-:: === Close bloat background tasks ===
-echo [*] Killing background apps...
-taskkill /f /im OneDrive.exe >nul 2>&1
-taskkill /f /im Teams.exe >nul 2>&1
-taskkill /f /im AdobeIPCBroker.exe >nul 2>&1
-taskkill /f /im AdobeCollabSync.exe >nul 2>&1
-taskkill /f /im ArmouryCrate.UserSessionHelper.exe
-taskkill /f /im GameSDK.exe
-taskkill /f /im NahimicService.exe
-taskkill /f /im AuraService.exe
-
-:: === Run RamMap to clear standby list ===
-echo [*] Running RamMap64 to clear standby memory...
-
-:: Accept the EULA silently to prevent dialog
-reg add "HKCU\Software\Sysinternals\RamMap" /v EulaAccepted /t REG_DWORD /d 1 /f >nul
-
-:: Run RamMap silently with the -Et -Es -Em -Ew flag to clear everything
-"D:\WindBatchCustom\RAMMap64.exe" -Et -Es -Em -Ew
-
-echo [✓] Cleanup Done. Sleeping for 10 seconds...
-timeout /t 10 >nul
-goto loop
+echo [*] Opening the DebloatKit GUI...
+start "" powershell.exe -NoProfile -ExecutionPolicy Bypass -STA -File "%~dp0DebloatKit\DebloatKit-GUI.ps1"
+exit /b 0

@@ -12,6 +12,11 @@
     given by -LogPath. There is no install or scheduling option; if you want a periodic run,
     schedule it yourself (see README.md).
 
+    It also reads the crash-dump settings (HKLM CrashControl: CrashDumpEnabled, FilterPages, AutoReboot,
+    a dedicated dump file) and compares the dump type with the pagefile on the boot drive: a pagefile too
+    small for the chosen dump type, no pagefile at all, and the warning that a small dump type on a
+    system-managed pagefile can lower the pagefile (and so the commit limit). Read-only; nothing is changed.
+
     Data comes from CIM only (not performance-counter paths, which are localized). Formatted rate
     counters need warm-up, so each report takes 5 samples 1 s apart and averages samples 2-5 for
     the rates; byte values come from the last sample.
@@ -170,6 +175,104 @@ function Get-PagefileAdvice {
     return @{ SuggestedMinGB = $suggest; Text = $text }
 }
 
+function Get-CrashDumpRequirementMB {
+    # Minimum pagefile (MB) on the boot drive for a dump type, from RAM in GB. 'complete' needs RAM + 257 MB;
+    # kernel and automatic follow Microsoft's RAM-size table (an approximation); small needs about 2 MB.
+    param([int]$DumpType, [double]$RamGB)
+    # Installed memory reads slightly under its nominal size (a 16 GB PC reports 15.9), which would land in the wrong table row.
+    $RamGB = [math]::Round($RamGB)
+    switch ($DumpType) {
+        0 { return 0 }
+        1 { return [int][math]::Ceiling($RamGB * 1024 + 257) }
+        3 { return 2 }
+        { $_ -in 2, 7 } {
+            if ($RamGB -lt 4) { return 800 }
+            if ($RamGB -lt 16) { return 2048 }
+            if ($RamGB -lt 64) { return 4096 }
+            if ($RamGB -lt 128) { return 8192 }
+            return 32768
+        }
+        default { return 0 }
+    }
+}
+
+function Get-CrashDumpAdvice {
+    # Pure: CrashControl settings + pagefile facts -> status (OK/Warning) and notes. Never changes anything.
+    # Settings: CrashDumpEnabled (0 none, 1 complete, 2 kernel, 3 small, 7 automatic), DedicatedDumpFile, DumpFile,
+    # FilterPages, AutoReboot. Pagefiles: hashtables with Name and EffectiveMB. BootDrive like 'C:'.
+    param(
+        [Parameter(Mandatory)]$Settings,
+        [Parameter(Mandatory)][double]$RamGB,
+        [AllowEmptyCollection()]$Pagefiles = @(),
+        [bool]$AutoManaged = $true,
+        [string]$BootDrive = 'C:'
+    )
+    $names = @{ 0 = 'none'; 1 = 'complete'; 2 = 'kernel'; 3 = 'small'; 7 = 'automatic' }
+    $type = Get-SampleValue $Settings 'CrashDumpEnabled'
+    $dedicated = Get-SampleValue $Settings 'DedicatedDumpFile'
+    $filter = Get-SampleValue $Settings 'FilterPages'
+    $autoReboot = Get-SampleValue $Settings 'AutoReboot'
+    $notes = New-Object System.Collections.Generic.List[string]
+    $state = @{ Status = 'OK' }
+    $warn = { param([string]$t) $state.Status = 'Warning'; $notes.Add($t) }
+
+    if ($null -eq $type) {
+        return @{ Status = 'OK'; Type = $null; TypeName = 'unknown'; RequiredMB = $null; BootPagefileMB = $null; DedicatedDumpFile = $false
+            Notes = [string[]]@('CrashDumpEnabled is not set; Windows uses its default (automatic memory dump).') }
+    }
+    $type = [int]$type
+    $typeName = if ($names.ContainsKey($type)) { $names[$type] } else { 'unknown (' + $type + ')' }
+    $required = Get-CrashDumpRequirementMB -DumpType $type -RamGB $RamGB
+
+    $bootMB = 0.0; $count = 0
+    foreach ($pf in @($Pagefiles)) {
+        $n = "$(Get-SampleValue $pf 'Name')"
+        $count++
+        if ($n -match ('^\s*' + [regex]::Escape($BootDrive))) { $bootMB += [double](Get-SampleValue $pf 'EffectiveMB') }
+    }
+    $hasDedicated = [bool]($dedicated -and "$dedicated".Length -gt 0)
+
+    if ($type -eq 0) {
+        $notes.Add('Crash dumps are off: a blue screen leaves no dump to analyse.')
+    }
+    elseif ($hasDedicated) {
+        $notes.Add(('A dedicated dump file is set ({0}); the dump does not need the pagefile.' -f $dedicated))
+    }
+    elseif ($count -eq 0) {
+        & $warn ('Dump type {0} is set but there is no pagefile, so no dump can be written.' -f $typeName)
+    }
+    elseif ($type -in 1, 2, 7) {
+        if ($bootMB -le 0) {
+            & $warn ('Dump type {0} needs a pagefile on the boot drive ({1}); the only pagefile is on another drive.' -f $typeName, $BootDrive)
+        }
+        elseif ($bootMB -lt $required -and $AutoManaged -and $type -in 2, 7) {
+            # A system-managed pagefile is sized by Windows for the dump type at crash time, so a small current size is not a problem.
+            $notes.Add(('Pagefile on {0} is {1:N0} MB, below the {2:N0} MB table value for a {3} dump, but it is system-managed: Windows sizes it for this dump.' -f $BootDrive, $bootMB, $required, $typeName))
+        }
+        elseif ($bootMB -lt $required) {
+            & $warn ('Pagefile on {0} is {1:N0} MB but a {2} dump needs about {3:N0} MB; a dump may be truncated or skipped.' -f $BootDrive, $bootMB, $typeName, $required)
+        }
+    }
+
+    if ($type -eq 3) {
+        $notes.Add('Small memory dump (CrashDumpEnabled=3) is what ReviOS sets to save disk. With a system-managed pagefile it lets Windows size the pagefile smaller, which lowers the commit limit. Do not copy it onto a PC that runs near its commit limit.')
+    }
+    elseif ($type -eq 7 -and $AutoManaged) {
+        $notes.Add('Automatic memory dump with a system-managed pagefile: Windows keeps the pagefile large enough for a kernel dump. This is the safe setting for commit headroom.')
+    }
+    if ($type -in 1, 2) {
+        $notes.Add(('{0} dump (CrashDumpEnabled={1}) is set; automatic (7) lets Windows manage the pagefile size for the dump.' -f $typeName, $type))
+    }
+    if ($null -ne $filter -and [int]$filter -eq 1) { $notes.Add('FilterPages=1: active-memory filtering is on for the dump (smaller complete dump).') }
+    if ($null -ne $autoReboot -and [int]$autoReboot -eq 0) { $notes.Add('AutoReboot=0: the PC stays on the blue screen after a crash instead of restarting.') }
+    $notes.Add('Read-only: this tool never changes the pagefile or the dump settings.')
+
+    return @{
+        Status = $state.Status; Type = $type; TypeName = $typeName; RequiredMB = $required
+        BootPagefileMB = $bootMB; DedicatedDumpFile = $hasDedicated; Notes = [string[]]$notes.ToArray()
+    }
+}
+
 function Test-ToastDue {
     param(
         [string]$Previous,
@@ -273,6 +376,18 @@ function Get-TopProcesses {
     return @($groups | Sort-Object _priv -Descending | Select-Object -First $TopN -Property Name, Count, PrivateGB, WorkingSetGB)
 }
 
+function Get-CrashControlSettings {
+    # Read-only: HKLM CrashControl. Missing values stay null.
+    $out = @{ CrashDumpEnabled = $null; DedicatedDumpFile = $null; DumpFile = $null; FilterPages = $null; AutoReboot = $null }
+    $key = 'HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl'
+    try {
+        $item = Get-ItemProperty -Path $key -ErrorAction Stop
+        foreach ($n in @($out.Keys)) { $out[$n] = Get-CimValue $item $n }
+    }
+    catch { Write-Diag ('CrashControl: ' + $_.Exception.Message) }
+    return $out
+}
+
 function Get-PressureSnapshot {
     param([int]$TopN, [int]$Days, [bool]$IncludeProcesses = $true, [bool]$IncludeEvents = $true)
 
@@ -335,6 +450,10 @@ function Get-PressureSnapshot {
     foreach ($f in $files) { $pfGB += [math]::Max($f.AllocatedBaseSize, [double]$f.ConfiguredMinMB) / 1024 }
     $advice = Get-PagefileAdvice -RamGB $ramGB -PeakCommitGB ([double]$m.PeakCommittedBytes / 1GB) -PagefileGB $pfGB -AutoManaged $auto
 
+    $pfFacts = @($files | ForEach-Object { @{ Name = $_.Name; EffectiveMB = [math]::Max($_.AllocatedBaseSize, [double]$_.ConfiguredMinMB) } })
+    $bootDrive = if ($env:SystemDrive) { $env:SystemDrive } else { 'C:' }
+    $crash = Get-CrashDumpAdvice -Settings (Get-CrashControlSettings) -RamGB $ramGB -Pagefiles $pfFacts -AutoManaged $auto -BootDrive $bootDrive
+
     $modMB = $null
     if ($null -ne $m.ModifiedBytes) { $modMB = [double]$m.ModifiedBytes / 1MB }
 
@@ -343,7 +462,7 @@ function Get-PressureSnapshot {
         RamGB = $ramGB; UsedGB = $usedGB; LimitGB = $limitGB; CommitPct = $pct
         AvailableMB = $availMB; PagesOut = $m.PagesOutputPerSec; PagesIn = $m.PagesInputPerSec
         ModifiedMB = $modMB; Pagefiles = $files; PagefileGB = $pfGB; Auto = $auto
-        Event = $ev; Verdict = $verdict; Advice = $advice
+        Event = $ev; Verdict = $verdict; Advice = $advice; CrashDump = $crash
         PeakCommitGB = [double]$m.PeakCommittedBytes / 1GB
         Top = if ($IncludeProcesses) { Get-TopProcesses -TopN $TopN } else { @() }
     }
@@ -386,6 +505,11 @@ function ConvertTo-JsonReport {
         verdict           = [ordered]@{ status = $Snap.Verdict.Status; reasons = @($Snap.Verdict.Reasons) }
         topProcesses      = @($Snap.Top)
         pagefileAdvice    = [ordered]@{ suggestedMinGB = $Snap.Advice.SuggestedMinGB; text = $Snap.Advice.Text }
+        crashDump         = [ordered]@{
+            status = $Snap.CrashDump.Status; dumpType = $Snap.CrashDump.Type; dumpTypeName = $Snap.CrashDump.TypeName
+            requiredPagefileMB = $Snap.CrashDump.RequiredMB; bootPagefileMB = $Snap.CrashDump.BootPagefileMB
+            dedicatedDumpFile = $Snap.CrashDump.DedicatedDumpFile; notes = @($Snap.CrashDump.Notes)
+        }
     }
     return ($obj | ConvertTo-Json -Depth 6)
 }
@@ -424,6 +548,9 @@ function Write-HumanReport {
     Write-Host ''
     Write-Host ('Pagefile advice (suggested minimum {0} GB, peak commit this run {1} GB):' -f $Snap.Advice.SuggestedMinGB, (Format-Num $Snap.PeakCommitGB))
     Write-Host ('  ' + $Snap.Advice.Text)
+    Write-Host ''
+    Write-Host ('Crash dump: {0} dump type, status {1} (pagefile on boot drive {2} MB, dump needs about {3} MB)' -f $Snap.CrashDump.TypeName, $Snap.CrashDump.Status, (Format-Num $Snap.CrashDump.BootPagefileMB '0'), (Format-Num $Snap.CrashDump.RequiredMB '0'))
+    foreach ($n in $Snap.CrashDump.Notes) { Write-Host ('  - ' + $n) }
 }
 
 function Get-CompactLine {
@@ -497,6 +624,35 @@ function Invoke-SelfTest {
     & $check 'advice text mentions manual change and IT' (($a.Text -match 'Virtual memory') -and ($a.Text -match 'IT'))
     $b = Get-PagefileAdvice -RamGB 32 -PeakCommitGB 20 -PagefileGB 8 -AutoManaged $false
     & $check 'pagefile advice RAM 32, peak 20, pf 8 -> no change needed' ($b.Text -eq 'no change needed')
+
+    # crash-dump settings against the pagefile (V11)
+    $pf = @(@{ Name = 'C:\pagefile.sys'; EffectiveMB = 2700 })
+    $cd = Get-CrashDumpAdvice -Settings @{ CrashDumpEnabled = 7 } -RamGB 32 -Pagefiles $pf -AutoManaged $true
+    & $check ('crash dump: automatic, 32 GB RAM, 2.7 GB system-managed pagefile -> OK with an info note (table value 4096; got ' + $cd.Status + ' / ' + $cd.RequiredMB + ')') ($cd.Status -eq 'OK' -and $cd.RequiredMB -eq 4096 -and ($cd.Notes -join ' ') -match 'Windows sizes it')
+    $cd = Get-CrashDumpAdvice -Settings @{ CrashDumpEnabled = 7 } -RamGB 32 -Pagefiles $pf -AutoManaged $false
+    & $check 'crash dump: automatic, 32 GB RAM, 2.7 GB FIXED pagefile -> Warning' ($cd.Status -eq 'Warning' -and $cd.RequiredMB -eq 4096)
+    $cd = Get-CrashDumpAdvice -Settings @{ CrashDumpEnabled = 1 } -RamGB 32 -Pagefiles $pf -AutoManaged $true
+    & $check 'crash dump: complete dump with a small system-managed pagefile still warns' ($cd.Status -eq 'Warning')
+    & $check 'crash dump requirement: 15.9 GB (a 16 GB PC) uses the 16 GB row (4096), not 2048' ((Get-CrashDumpRequirementMB 7 15.9) -eq 4096)
+    $cd = Get-CrashDumpAdvice -Settings @{ CrashDumpEnabled = 7 } -RamGB 32 -Pagefiles @(@{ Name = 'C:\pagefile.sys'; EffectiveMB = 8192 }) -AutoManaged $true
+    & $check 'crash dump: automatic, 8 GB pagefile -> OK, safe-setting note' ($cd.Status -eq 'OK' -and ($cd.Notes -join ' ') -match 'safe setting')
+    $cd = Get-CrashDumpAdvice -Settings @{ CrashDumpEnabled = 3 } -RamGB 32 -Pagefiles $pf -AutoManaged $true
+    & $check 'crash dump: small dump + system-managed pagefile -> OK but warns about the lower commit limit (ReviOS)' ($cd.Status -eq 'OK' -and ($cd.Notes -join ' ') -match 'ReviOS' -and ($cd.Notes -join ' ') -match 'commit limit')
+    $cd = Get-CrashDumpAdvice -Settings @{ CrashDumpEnabled = 1 } -RamGB 16 -Pagefiles @(@{ Name = 'C:\pagefile.sys'; EffectiveMB = 16000 }) -AutoManaged $false
+    & $check ('complete dump needs RAM + 257 MB = 16641 (got ' + $cd.RequiredMB + ') -> Warning at 16000 MB') ($cd.RequiredMB -eq 16641 -and $cd.Status -eq 'Warning')
+    $cd = Get-CrashDumpAdvice -Settings @{ CrashDumpEnabled = 2 } -RamGB 16 -Pagefiles @(@{ Name = 'D:\pagefile.sys'; EffectiveMB = 8000 }) -AutoManaged $false
+    & $check 'crash dump: pagefile only on another drive -> Warning' ($cd.Status -eq 'Warning' -and ($cd.Notes -join ' ') -match 'boot drive')
+    $cd = Get-CrashDumpAdvice -Settings @{ CrashDumpEnabled = 2 } -RamGB 16 -Pagefiles @() -AutoManaged $false
+    & $check 'crash dump: dump enabled and no pagefile -> Warning' ($cd.Status -eq 'Warning')
+    $cd = Get-CrashDumpAdvice -Settings @{ CrashDumpEnabled = 1; DedicatedDumpFile = 'D:\dd.sys' } -RamGB 16 -Pagefiles @() -AutoManaged $false
+    & $check 'crash dump: dedicated dump file waives the pagefile requirement' ($cd.Status -eq 'OK' -and $cd.DedicatedDumpFile)
+    $cd = Get-CrashDumpAdvice -Settings @{ CrashDumpEnabled = 0 } -RamGB 16 -Pagefiles @() -AutoManaged $true
+    & $check 'crash dump: type 0 -> OK, no requirement' ($cd.Status -eq 'OK' -and $cd.RequiredMB -eq 0)
+    $cd = Get-CrashDumpAdvice -Settings @{ } -RamGB 16 -Pagefiles @() -AutoManaged $true
+    & $check 'crash dump: missing CrashDumpEnabled -> OK, unknown' ($cd.Status -eq 'OK' -and $cd.TypeName -eq 'unknown')
+    & $check 'crash dump requirement by RAM size (3 GB 800, 8 GB 2048, 32 GB 4096, 96 GB 8192, 200 GB 32768)' (
+        (Get-CrashDumpRequirementMB 2 3) -eq 800 -and (Get-CrashDumpRequirementMB 2 8) -eq 2048 -and (Get-CrashDumpRequirementMB 7 32) -eq 4096 -and
+        (Get-CrashDumpRequirementMB 7 96) -eq 8192 -and (Get-CrashDumpRequirementMB 7 200) -eq 32768)
 
     $now = Get-Date
     & $check 'toast OK->Warning -> true'   ((Test-ToastDue -Previous 'OK' -Current 'Warning' -LastToastTime $null -Now $now) -eq $true)

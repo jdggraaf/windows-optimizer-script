@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 2,
+  "catalogVersion": "test-wp4",
+  "migrations": [],
+  "tweaks": [
+    {
+      "id": "w4-cap-wordpad", "category": "components", "description": "Capability removal (preset safe in the test copy only).",
+      "implementation": { "type": "capability", "name": "Microsoft.Windows.WordPad" },
+      "revert": "Add-WindowsCapability", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w4-cap-multi", "category": "components", "description": "Installed, already removed, and absent capabilities in one tweak.",
+      "implementation": { "type": "multi", "steps": [
+        { "type": "capability", "name": "App.StepsRecorder" },
+        { "type": "capability", "name": "Media.WindowsMediaPlayer" },
+        { "type": "capability", "name": "Nonexistent.Thing" } ] },
+      "revert": "Add-WindowsCapability", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w4-cap-lang", "category": "components", "description": "Language features are protected.",
+      "implementation": { "type": "capability", "name": "Language.Basic" },
+      "revert": "n/a", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w4-feat-ie", "category": "components", "description": "Optional feature disable.",
+      "implementation": { "type": "optionalfeature", "name": "Internet-Explorer-Optional-amd64" },
+      "revert": "Enable-WindowsOptionalFeature", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w4-feat-protected", "category": "components", "description": "Hyper-V is protected.",
+      "implementation": { "type": "optionalfeature", "name": "Microsoft-Hyper-V-All" },
+      "revert": "n/a", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w4-feat-missing", "category": "components", "description": "Feature that does not exist on this system.",
+      "implementation": { "type": "optionalfeature", "name": "Does-Not-Exist" },
+      "revert": "n/a", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w4-appx-work", "category": "appx", "description": "Profile test-work: keeps Paint.",
+      "implementation": { "type": "appx", "profile": "test-work" },
+      "revert": "not reversible", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w4-appx-min", "category": "appx", "description": "Profile test-min: keeps nothing.",
+      "implementation": { "type": "appx", "profile": "test-min" },
+      "revert": "not reversible", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w4-appx-names", "category": "appx", "description": "Plain names; Store is protected.",
+      "implementation": { "type": "appx", "names": [ "Microsoft.BingNews", "Microsoft.ZuneMusic", "Microsoft.WindowsStore" ] },
+      "revert": "not reversible", "risk": "safe", "preset": "safe"
+    },
+    {
+      "id": "w4-appx-badprofile", "category": "appx", "description": "Profile that is not defined.",
+      "implementation": { "type": "appx", "profile": "nope" },
+      "revert": "not reversible", "risk": "safe", "preset": "safe"
+    }
+  ]
+}
